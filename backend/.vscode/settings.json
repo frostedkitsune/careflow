@@ -2,7 +2,7 @@
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.expand": false,
     "explorer.fileNesting.patterns": {
-        "README.md": ".python-version, pyproject.toml, .env, uv.lock"
+        "README.md": ".python-version, pyproject.toml, uv.lock, runner-template.py, runner.py"
     },
     
     "editor.tabSize": 4,
