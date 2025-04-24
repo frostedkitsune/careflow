@@ -6,8 +6,8 @@ dist/
 wheels/
 *.egg-info
 
-# Virtual environments
-.venv
+# runner scripts
+runner.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
