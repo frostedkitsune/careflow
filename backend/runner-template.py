@@ -18,7 +18,7 @@ signal.signal(signal.SIGINT, signal_handler)
 # Run the command as it is
 POSTGRES_URL = ""
 process = subprocess.Popen(
-    f"env POSTGRES_URL='{POSTGRES_URL}' fastapi dev app/main.py", shell=True
+    f"env POSTGRES_URL='{POSTGRES_URL}?statement_cache_size=0' fastapi dev app/main.py", shell=True
 )
 
 # Wait for the subprocess to complete
