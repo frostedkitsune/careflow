@@ -1,3 +1,4 @@
+import logging
 import os
 
 from collections.abc import AsyncGenerator
@@ -6,12 +7,14 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, status
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from tortoise import Tortoise, generate_config
+from tortoise import Tortoise
+from tortoise.backends.base.config_generator import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise, tortoise_exception_handlers
-
 
 from app.routers import admin, patient, record
 
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger("tortoise")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -34,7 +37,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         yield
         # app teardown
     # db connections closed
-    await Tortoise._drop_databases()
+    await Tortoise.close_connections()
 
 
 app = FastAPI(
@@ -55,4 +58,4 @@ app.include_router(patient.router)
 app.include_router(record.router)
 
 
-# app.mount("/", StaticFiles(directory="static"), "static")
+app.mount("/", StaticFiles(directory="static"), "static")
