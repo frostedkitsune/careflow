@@ -1,6 +1,5 @@
 import subprocess
 import signal
-import os
 import sys
 
 
