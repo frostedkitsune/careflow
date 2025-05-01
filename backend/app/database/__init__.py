@@ -1,3 +1,4 @@
+from enum import Enum, unique
 from tortoise import fields, models
 from tortoise.contrib.pydantic import pydantic_model_creator
 
@@ -6,30 +7,44 @@ class Admin(models.Model):
     """
     The Admin model
     """
+
     id = fields.IntField(primary_key=True)
     #: This is a username
     username = fields.CharField(max_length=20, unique=True)
     name = fields.CharField(max_length=50)
     password_hash = fields.CharField(max_length=128)
-
+    email = fields.CharField(max_length=50, unique=True)
 
     class Meta:
         # table = "admin"
         exclude = ["password_hash"]
 
 
+class GenderEnum(str, Enum):
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+
+
 class Patient(models.Model):
     """
     The Patient model
     """
+
     id = fields.IntField(primary_key=True)
     name = fields.CharField(max_length=255)
-    email = fields.CharField(max_length=255)
-    phone = fields.CharField(max_length=50)
+    email = fields.CharField(max_length=255, unique=True)
+    phone = fields.CharField(max_length=50, unique=True)
+    dob = fields.DateField()
+    gender = fields.CharEnumField(GenderEnum)
     address = fields.CharField(max_length=255)
+    emergency_person = fields.CharField(max_length=255)
+    emergency_relation = fields.CharField(max_length=255)
+    emergency_number = fields.CharField(max_length=255)
 
     class Meta:
         exclude = []
+
 
 class Records(models.Model):
     id = fields.IntField(primary_key=True)
@@ -38,7 +53,7 @@ class Records(models.Model):
     notes = fields.TextField()
     record_date = fields.DatetimeField()
 
-    class Meta: 
+    class Meta:
         exclude = []
 
 
