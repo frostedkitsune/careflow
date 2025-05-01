@@ -44,3 +44,18 @@ cp .env.template .env
 uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
 ```
 
+> [!TIP]
+> a function/alias can be added to the respective activate scripts
+> to save from typing this long command
+>
+> for bash append this to .venv > bin > activate
+> ```bash
+> alias runcfb="uvicorn app.main:app --env-file .env --reload --reload-delay 1.0"
+> ```
+>
+> for powershell append this to .venv > bin > activate.ps1
+> ```pwsh
+> function runcfb {
+>    uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
+>}
+> ```
