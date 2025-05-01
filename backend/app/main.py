@@ -43,7 +43,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     lifespan=lifespan,
     exception_handlers=tortoise_exception_handlers(),
-    root_path="/api/v1",
+    root_path=os.getenv(
+        "API_PREFIX",
+        "",
+    ),
 )
 
 
