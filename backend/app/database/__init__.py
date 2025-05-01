@@ -42,8 +42,37 @@ class Records(models.Model):
         exclude = []
 
 
+class Doctor(models.Model):
+    """
+    The Doctor model
+    """
+
+    id = fields.IntField(primary_key=True)
+    name = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=255, unique=True)
+    phone = fields.CharField(max_length=50, unique=True)
+    specialization = fields.CharField(max_length=255)
+
+    class Meta:
+        exclude = []
+
+
+class Receptionist(models.Model):
+    """
+    The Receptionist model
+    """
+
+    id = fields.IntField(primary_key=True)
+    name = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=255, unique=True)
+    phone = fields.CharField(max_length=50, unique=True)
+
+    class Meta:
+        exclude = []
 
 
 Admin_Pydantic = pydantic_model_creator(Admin)
 Patient_Pydantic = pydantic_model_creator(Patient)
 Records_Pydantic = pydantic_model_creator(Records)
+Doctor_Pydantic = pydantic_model_creator(Doctor)
+Receptionist_Pydantic = pydantic_model_creator(Receptionist)
