@@ -12,4 +12,7 @@
 
     "basedpyright.analysis.inlayHints.genericTypes": true,
     "basedpyright.disableOrganizeImports": true,
+    "python.experiments.optOutFrom": [
+        "pythonTerminalEnvVarActivation"
+    ]
 }
