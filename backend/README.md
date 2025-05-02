@@ -1,4 +1,4 @@
-<center>
+<div style="text-align: center; margin: 0 auto;">
 
 # Careflow Backend
 
@@ -6,7 +6,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115.11-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 
-</center>
+</div>
 
 ## setting dev environment
 
@@ -41,23 +41,23 @@ cp .env.template .env
 ### 4. run the dev server:
 
 ```sh
-uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
+uvicorn app.main:app --env-file .env --reload --reload-dir app
 ```
 
 > [!TIP]
-> a function/alias can be added to the respective activate scripts
+> a function can be added to the respective activate scripts
 > to save from typing this long command
 >
 > for bash append this to .venv > bin > activate
 > ```bash
 > runcfb () {
->   uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
+>     uvicorn app.main:app --env-file .env --reload --reload-dir app
 > }
 > ```
 >
 > for powershell append this to .venv > bin > activate.ps1
-> ```pwsh
+> ```powershell
 > function runcfb {
->    uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
->}
+>     uvicorn app.main:app --env-file .env --reload --reload-dir app
+> }
 > ```
