@@ -50,7 +50,9 @@ uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
 >
 > for bash append this to .venv > bin > activate
 > ```bash
-> alias runcfb="uvicorn app.main:app --env-file .env --reload --reload-delay 1.0"
+> runcfb () {
+>   uvicorn app.main:app --env-file .env --reload --reload-delay 1.0
+> }
 > ```
 >
 > for powershell append this to .venv > bin > activate.ps1
