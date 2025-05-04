@@ -85,6 +85,42 @@ class Receptionist(models.Model):
     class Meta:
         exclude = []
 
+# Appointment Model
+class Appointment(models.Model):
+    """
+    The Appointment Model
+    """
+
+    id = fields.IntField(primary_key=True)
+    patient_id = fields.IntField()
+    doctor_id = fields.IntField()
+    receptionist_id = fields.IntField()
+    appointment_date = fields.DateField()
+    reshedule_date = fields.DateField()
+    status = fields.CharField(max_length=255)
+    slot_id = fields.IntField()
+
+    class Meta:
+            exclude =[]
+
+# Slot Model
+class Slot(models.Model):
+    """
+    The Slot Model
+    """
+
+    id = fields.IntField(primary_key=True)
+    doctor_id = fields.IntField()
+    available = fields.BooleanField()
+    slot_time = fields.TimeField()
+
+    class Meta:
+        exclude = []
+
+
+
+
+
 
 Admin_Pydantic = pydantic_model_creator(Admin)
 Patient_Pydantic = pydantic_model_creator(Patient)
