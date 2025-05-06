@@ -21,7 +21,7 @@ class Admin(models.Model):
 
 
 # ENUM for patient gender
-class gender_enum(str, Enum):
+class GenderEnum(str, Enum):
     MALE = "male"
     FEMALE = "female"
     OTHER = "other"
@@ -38,7 +38,7 @@ class Patient(models.Model):
     email = fields.CharField(max_length=255, unique=True)
     phone = fields.CharField(max_length=50, unique=True)
     dob = fields.DateField()
-    gender = fields.CharEnumField(gender_enum)
+    gender = fields.CharEnumField(GenderEnum)
     address = fields.CharField(max_length=255)
     emergency_person = fields.CharField(max_length=255)
     emergency_relation = fields.CharField(max_length=255)
@@ -99,9 +99,10 @@ class Receptionist(models.Model):
 
 
 # create enum for appointment status
-class status_enum(str, Enum):
+class StatusEnum(str, Enum):
     PENDING = "PENDING"
     BOOKED = "BOOKED"
+    DONE = "DONE"
 
 
 # Appointment Model
@@ -138,7 +139,7 @@ class Appointment(models.Model):
     )
     appointment_date = fields.DateField()
     reschedule_date = fields.DateField(null=True)
-    status = fields.CharEnumField(status_enum, default=status_enum.PENDING)
+    status = fields.CharEnumField(StatusEnum, default=StatusEnum.PENDING)
     record_ids = fields.JSONField(default=list)
 
     class Meta:
