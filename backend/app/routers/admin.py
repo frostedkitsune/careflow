@@ -16,12 +16,13 @@ from app.database import (
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+# todo: admin id should be fetch from token, now it's hardcoded to 1
 
 @router.get(
-    "/me/{id}", response_model=Admin_Pydantic, response_model_exclude={"password_hash"}
+    "/me", response_model=Admin_Pydantic, response_model_exclude={"password_hash"}
 )
 async def read_profile_data(id):
-    admin_data = await Admin.get_or_none(id=id).values()  
+    admin_data = await Admin.get_or_none(id=1).values()  
     if not admin_data:
         raise HTTPException(status_code=404, detail="Admin not found")
     return admin_data
