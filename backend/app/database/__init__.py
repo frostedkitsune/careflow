@@ -101,7 +101,7 @@ class Receptionist(models.Model):
 # create enum for appointment status
 class status_enum(str, Enum):
     PENDING = "PENDING"
-    COMPLETED = "COMPLETED"
+    BOOKED = "BOOKED"
 
 
 # Appointment Model
