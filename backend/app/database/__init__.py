@@ -169,3 +169,11 @@ Doctor_Pydantic = pydantic_model_creator(Doctor)
 Receptionist_Pydantic = pydantic_model_creator(Receptionist)
 Appointment_Pydantic = pydantic_model_creator(Appointment)
 Slot_Pydantic = pydantic_model_creator(Slot)
+
+AdminType = Admin_Pydantic
+PatientType = Patient_Pydantic
+RecordsType = Records_Pydantic
+DoctorType = Doctor_Pydantic
+ReceptionistType = Receptionist_Pydantic
+AppointmentType = Appointment_Pydantic
+SlotType = Slot_Pydantic
