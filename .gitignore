@@ -6,9 +6,6 @@ dist/
 wheels/
 *.egg-info
 
-# runner scripts
-runner.py
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -25,7 +22,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+.venv/lib/ # otherwise it ignores lib/ in frontend/
 lib64/
 parts/
 sdist/
@@ -183,3 +180,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Node packges
+node_modules/
