@@ -7,6 +7,10 @@ import AdminDashboard from './dashboards/admin/AdminDashboard.tsx';
 import AdminProfile from './dashboards/admin/AdminProfile.tsx';
 import AdminSettings from './dashboards/admin/AdminSettings.tsx';
 import AdminUsers from './dashboards/admin/AdminUsers.tsx';
+import ReceptionistDashboard from './dashboards/receptionist/ReceptionistDashboard.tsx';
+import ReceptionistAppointments from './dashboards/receptionist/ReceptionistAppointments.tsx';
+import ReceptionistTestResults from './dashboards/receptionist/ReceptionistTestResults.tsx';
+import ReceptionistProfile from './dashboards/receptionist/ReceptionistProfile.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -18,6 +22,12 @@ createRoot(document.getElementById('root')!).render(
           <Route path="profile" element={<AdminProfile />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="users" element={<AdminUsers />} />
+        </Route>
+        <Route path="/receptionist">
+          <Route path="dashboard" element={<ReceptionistDashboard />} />
+          <Route path="appointments" element={<ReceptionistAppointments />} />
+          <Route path="test-results" element={<ReceptionistTestResults />} />
+          <Route path="profile" element={<ReceptionistProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
