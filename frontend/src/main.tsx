@@ -11,6 +11,11 @@ import ReceptionistDashboard from './dashboards/receptionist/ReceptionistDashboa
 import ReceptionistAppointments from './dashboards/receptionist/ReceptionistAppointments.tsx';
 import ReceptionistTestResults from './dashboards/receptionist/ReceptionistTestResults.tsx';
 import ReceptionistProfile from './dashboards/receptionist/ReceptionistProfile.tsx';
+import DoctorAppointments from './dashboards/doctor/DoctorAppointments.tsx';
+import DoctorDashboard from './dashboards/doctor/DoctorDashboard.tsx';
+import DoctorPatientRecords from './dashboards/doctor/DoctorPatientRecords.tsx';
+import DoctorPrescriptions from './dashboards/doctor/DoctorPrescriptions.tsx';
+import DoctorProfile from './dashboards/doctor/DoctorProfile.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -28,6 +33,13 @@ createRoot(document.getElementById('root')!).render(
           <Route path="appointments" element={<ReceptionistAppointments />} />
           <Route path="test-results" element={<ReceptionistTestResults />} />
           <Route path="profile" element={<ReceptionistProfile />} />
+        </Route>
+        <Route path="/doctor">
+          <Route path="dashboard" element={<DoctorDashboard />} />
+          <Route path="appointments" element={<DoctorAppointments />} />
+          <Route path="patient-records" element={<DoctorPatientRecords />} />
+          <Route path="prescriptions" element={<DoctorPrescriptions />} />
+          <Route path="profile" element={<DoctorProfile />} />
         </Route>
       </Routes>
     </BrowserRouter>
