@@ -32,10 +32,10 @@ export default function LoginPage() {
         setCurrentUser({ id: user.id, role: user.role })
 
         // Redirect to dashboard based on role
-        navigate(`/${role}/dashboard`)
-        toast("Login successful",{
+        toast("Login successful", {
           description: `Welcome back, ${user.name}!`,
         })
+        setTimeout(() => navigate(`/${role}/dashboard`), 1000)
       } else {
         toast.error("Login failed", {
           description: "Invalid email or password. Please try again."
@@ -62,7 +62,7 @@ export default function LoginPage() {
   }
 
   const fillDemoCredentials = () => {
-    const {email, password} = getDemoCredentials()
+    const { email, password } = getDemoCredentials()
     setEmail(email)
     setPassword(password)
   }
