@@ -33,17 +33,12 @@ export default function LoginPage() {
 
         // Redirect to dashboard based on role
         navigate(`/${role}/dashboard`)
-        toast({
-          // @ts-ignore
-          title: "Login successful",
+        toast("Login successful",{
           description: `Welcome back, ${user.name}!`,
         })
       } else {
-        toast({
-          // @ts-ignore
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
-          variant: "destructive",
+        toast.error("Login failed", {
+          description: "Invalid email or password. Please try again."
         })
         setLoading(false)
       }
