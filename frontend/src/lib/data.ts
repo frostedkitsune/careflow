@@ -263,7 +263,7 @@ export const users = [
   {
     id: 2,
     name: "Sarah Johnson",
-    email: "sarah.johnson@careflow.com",
+    email: "sarah.johnson@careflow.health",
     role: "receptionist",
     status: "Active",
     lastLogin: "2025-05-10 08:30:45",
@@ -271,7 +271,7 @@ export const users = [
   {
     id: 3,
     name: "Dr. Michael Chen",
-    email: "dr.chen@careflow.com",
+    email: "dr.chen@careflow.health",
     role: "doctor",
     status: "Active",
     lastLogin: "2025-05-10 10:05:18",
@@ -279,7 +279,7 @@ export const users = [
   {
     id: 4,
     name: "Admin User",
-    email: "admin@careflow.com",
+    email: "admin@careflow.health",
     role: "admin",
     status: "Active",
     lastLogin: "2025-05-10 07:45:33",
@@ -295,7 +295,7 @@ export const users = [
   {
     id: 6,
     name: "Dr. Sarah Williams",
-    email: "dr.williams@careflow.com",
+    email: "dr.williams@careflow.health",
     role: "doctor",
     status: "Active",
     lastLogin: "2025-05-09 16:40:55",
@@ -303,7 +303,7 @@ export const users = [
   {
     id: 7,
     name: "Alex Johnson",
-    email: "alex.johnson@careflow.com",
+    email: "alex.johnson@careflow.health",
     role: "receptionist",
     status: "Inactive",
     lastLogin: "2025-05-01 11:30:20",
