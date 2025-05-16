@@ -11,7 +11,7 @@ from tortoise import Tortoise
 from tortoise.backends.base.config_generator import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise, tortoise_exception_handlers
 
-from app.routers import admin, patient, record, doctor
+from app.routers import admin, patient, record, doctor ,receptionist
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger("tortoise")
@@ -60,6 +60,7 @@ app.include_router(admin.router)
 app.include_router(patient.router)
 app.include_router(record.router)
 app.include_router(doctor.router)
+app.include_router(receptionist.router)
 
 
 
