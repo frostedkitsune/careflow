@@ -3,7 +3,7 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 
 # import the Model
-from app.database import Appointment, Doctor, Doctor_Pydantic, Records
+from app.database import Appointment, Appointment_Pydantic, Doctor, Doctor_Pydantic, Patient_Pydantic, Records, Slot_Pydantic
 
 # router
 router = APIRouter(prefix="/doctor", tags=["doctor"])
@@ -92,3 +92,26 @@ async def get_patient_record(
         
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
+
+
+# get appointment details
+@router.get("/appointments", summary="Get all appointments for the current doctor")
+async def get_doctor_appointments():
+    doctor_id = 3  #replace this with real id 
+    appointments = await Appointment.filter(doctor_id=doctor_id).prefetch_related("slot_id", "patient_id")
+    print("appointment",appointments)
+    if not appointments:
+        raise HTTPException(status_code=404, detail="No appointments found for this doctor")
+    results = []
+    for appt in appointments:
+        slot = await Slot_Pydantic.from_tortoise_orm(appt.slot_id)
+        patient = await Patient_Pydantic.from_tortoise_orm(appt.patient_id)
+        appt_data = await Appointment_Pydantic.from_tortoise_orm(appt)
+
+        results.append({
+            "appointment": appt_data,
+            "slot": slot,
+            "patient": patient
+        })
+
+    return results
