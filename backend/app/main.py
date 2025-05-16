@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from tortoise import Tortoise
 from tortoise.backends.base.config_generator import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise, tortoise_exception_handlers
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import admin, patient, record, doctor ,receptionist
 
@@ -47,6 +48,19 @@ app = FastAPI(
         "API_PREFIX",
         "",
     ),
+)
+
+# cors configure
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

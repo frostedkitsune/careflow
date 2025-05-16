@@ -99,7 +99,6 @@ async def get_patient_record(
 async def get_doctor_appointments():
     doctor_id = 3  #replace this with real id 
     appointments = await Appointment.filter(doctor_id=doctor_id).prefetch_related("slot_id", "patient_id")
-    print("appointment",appointments)
     if not appointments:
         raise HTTPException(status_code=404, detail="No appointments found for this doctor")
     results = []
