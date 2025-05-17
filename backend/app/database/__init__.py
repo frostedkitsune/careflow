@@ -142,6 +142,7 @@ class Appointment(models.Model):
     reschedule_date = fields.DateField(null=True)
     status = fields.CharEnumField(AppointmentStatusEnum, default=AppointmentStatusEnum.PENDING)
     record_ids = fields.JSONField(default=list)
+    reason = fields.TextField()
 
     class Meta:
         exclude = []
