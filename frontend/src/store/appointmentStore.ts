@@ -1,25 +1,38 @@
 import { create } from 'zustand'
 
-interface Appointment {
+export interface AppointmentData {
   appointment: {
     id: number
-    appointment_date: string
-    status: string
-    [key: string]: any
+    appointment_date: string // ISO date format (e.g., "2025-05-11")
+    reschedule_date: string | null
+    status: "BOOKED" | "CANCELLED" | "COMPLETED" | string // extend as needed
+    record_ids: number[]
+    reason: string
   }
   slot: {
-    slot_time: string
-    [key: string]: any
+    id: number
+    available: boolean
+    slot_time: string // ISO time format (e.g., "10:00:00Z")
+    day: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | string
   }
   patient: {
+    id: number
     name: string
-    [key: string]: any
+    email: string
+    phone: string
+    dob: string // ISO date format (e.g., "1985-05-15")
+    gender: "male" | "female" | "other" | string
+    address: string
+    emergency_person: string
+    emergency_relation: string
+    emergency_number: string
   }
 }
 
+
 interface AppointmentState {
-  appointments: Appointment[]
-  setAppointments: (data: Appointment[]) => void
+  appointments: AppointmentData[]
+  setAppointments: (data: AppointmentData[]) => void
 }
 
 export const useAppointmentStore = create<AppointmentState>((set) => ({
