@@ -16,11 +16,13 @@ import DoctorDashboard from './dashboards/doctor/DoctorDashboard.tsx';
 import DoctorPatientRecords from './dashboards/doctor/DoctorPatientRecords.tsx';
 import DoctorPrescriptions from './dashboards/doctor/DoctorPrescriptions.tsx';
 import DoctorProfile from './dashboards/doctor/DoctorProfile.tsx';
+import Index from './Index.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
+        <Route index element={<Index />} />
         <Route path="/login" element={<App />} />
         <Route path="/admin">
           <Route path="dashboard" element={<AdminDashboard />} />
