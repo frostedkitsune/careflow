@@ -85,7 +85,7 @@ export default function DoctorAppointments() {
         <Button 
           variant="outline" 
           className="w-full mt-3 rounded-lg"
-          onClick={() => navigate(`/appointment/${appointment.appointment.id}`)}
+          onClick={() => navigate(`/doctor/appointment/${appointment.appointment.id}`)}
         >
           View Details
         </Button>

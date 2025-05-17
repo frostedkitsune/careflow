@@ -52,6 +52,26 @@ async def get_prescriptions_by_doctor_id():
 
     return results
 
+# model for create prescription
+class PrescriptionCreateData(BaseModel):
+    appointment_id: int
+    observation: str
+    medication: str
+    advise: str
+    test: str
+
+# route for create prescription
+@router.post("/create")
+async def create_prescription(prescription_data: PrescriptionCreateData):
+    await Prescription.create(
+        appointment_id=prescription_data.appointment_id,
+        observation=prescription_data.observation,
+        medication=prescription_data.medication,
+        advise=prescription_data.advise,
+        test=prescription_data.test,
+    )
+
+    return {"msg": "prescription created"}
 
 # route for get the prescription result by appointmentID
 @router.get(
@@ -85,24 +105,5 @@ async def get_prescription_details_by_appointment(appointment_id: int):
     return {"patient": patient, "prescription": prescription_data}
 
 
-# model for create prescription
-class PrescriptionCreateData(BaseModel):
-    appointment_id: int
-    observation: str
-    medication: str
-    advise: str
-    test: str
 
 
-# route for create prescription
-@router.post("/create")
-async def create_prescription(prescription_data: PrescriptionCreateData):
-    await Prescription.create(
-        appointment_id=prescription_data.appointment_id,
-        observation=prescription_data.observation,
-        medication=prescription_data.medication,
-        advise=prescription_data.advise,
-        test=prescription_data.test,
-    )
-
-    return {"msg": "prescription created"}

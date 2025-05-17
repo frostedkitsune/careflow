@@ -19,7 +19,6 @@ import {
   Calendar,
   FileText,
   Upload,
-  ClipboardList,
   Settings, Users,
   Pill
 } from "lucide-react"
@@ -120,11 +119,6 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           title: "View Appointments",
           href: `/${role}/appointments`,
           icon: Calendar,
-        },
-        {
-          title: "Patient Records",
-          href: `/${role}/patient-records`,
-          icon: ClipboardList,
         },
         {
           title: "Prescriptions",

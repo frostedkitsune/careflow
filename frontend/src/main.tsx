@@ -13,9 +13,9 @@ import ReceptionistTestResults from './dashboards/receptionist/ReceptionistTestR
 import ReceptionistProfile from './dashboards/receptionist/ReceptionistProfile.tsx';
 import DoctorAppointments from './dashboards/doctor/DoctorAppointments.tsx';
 import DoctorDashboard from './dashboards/doctor/DoctorDashboard.tsx';
-import DoctorPatientRecords from './dashboards/doctor/DoctorPatientRecords.tsx';
 import DoctorPrescriptions from './dashboards/doctor/DoctorPrescriptions.tsx';
 import DoctorProfile from './dashboards/doctor/DoctorProfile.tsx';
+import DoctorAppointmentsDetails from './dashboards/doctor/DoctorAppointmentDetails.tsx';
 import Index from './Index.tsx';
 
 createRoot(document.getElementById('root')!).render(
@@ -39,7 +39,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/doctor">
           <Route path="dashboard" element={<DoctorDashboard />} />
           <Route path="appointments" element={<DoctorAppointments />} />
-          <Route path="patient-records" element={<DoctorPatientRecords />} />
+          <Route path="appointment/:appointment_id" element={<DoctorAppointmentsDetails />} />
           <Route path="prescriptions" element={<DoctorPrescriptions />} />
           <Route path="profile" element={<DoctorProfile />} />
         </Route>
