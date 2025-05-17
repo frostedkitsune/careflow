@@ -99,10 +99,11 @@ class Receptionist(models.Model):
 
 
 # create enum for appointment status
-class StatusEnum(str, Enum):
+class AppointmentStatusEnum(str, Enum):
     PENDING = "PENDING"
     BOOKED = "BOOKED"
     DONE = "DONE"
+    REJECTED = "REJECTED"
 
 
 # Appointment Model
@@ -139,7 +140,7 @@ class Appointment(models.Model):
     )
     appointment_date = fields.DateField()
     reschedule_date = fields.DateField(null=True)
-    status = fields.CharEnumField(StatusEnum, default=StatusEnum.PENDING)
+    status = fields.CharEnumField(AppointmentStatusEnum, default=AppointmentStatusEnum.PENDING)
     record_ids = fields.JSONField(default=list)
 
     class Meta:
