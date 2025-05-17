@@ -163,6 +163,21 @@ class Slot(models.Model):
     class Meta:
         exclude = []
 
+# Prescription Model
+class Prescription(models.Model):
+    """
+    The Prescription Model
+    """
+    id = fields.IntField(primary_key=True)
+    appointment_id = fields.ForeignKeyField("models.Appointment", related_name="prescription")
+    observation = fields.TextField()
+    medication = fields.TextField()
+    advise = fields.TextField()
+    test = fields.TextField()
+
+    class Meta:
+        exclude = []
+
 
 Admin_Pydantic = pydantic_model_creator(Admin)
 Patient_Pydantic = pydantic_model_creator(Patient)
