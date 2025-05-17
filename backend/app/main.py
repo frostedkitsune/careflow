@@ -12,7 +12,7 @@ from tortoise.backends.base.config_generator import generate_config
 from tortoise.contrib.fastapi import RegisterTortoise, tortoise_exception_handlers
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import admin, patient, record, doctor ,receptionist
+from app.routers import admin, patient, record, doctor ,receptionist,prescription
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger("tortoise")
@@ -75,6 +75,7 @@ app.include_router(patient.router)
 app.include_router(record.router)
 app.include_router(doctor.router)
 app.include_router(receptionist.router)
+app.include_router(prescription.router)
 
 
 
