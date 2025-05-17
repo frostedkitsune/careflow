@@ -1,225 +1,157 @@
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { useNavigate } from "react-router"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Calendar, Clock, Check, Search, Filter, FileText } from "lucide-react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Calendar, Clock, Search } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
 import { useCareFlowStore } from "@/lib/store"
-import { getPatientById } from "@/lib/data"
-import { toast } from "sonner"
-import { useNavigate } from "react-router"
+import { useAppointmentStore } from "@/store/appointmentStore"
 
-export default function DoctorAppointmentsFlatView() {
+export default function DoctorAppointments() {
   const navigate = useNavigate()
   const currentUser = useCareFlowStore((state) => state.currentUser)
-  const appointments = useCareFlowStore((state) => state.appointments)
-  const updateAppointment = useCareFlowStore((state) => state.updateAppointment)
+  const { appointments } = useAppointmentStore()
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null)
-  const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!currentUser) {
     navigate("/login")
     return null
   }
 
-  const doctorAppointments = appointments
-    .filter((appointment) => appointment.doctorId === currentUser.id)
-    .filter((appointment) => {
-      const patient = getPatientById(appointment.patientId)
-      return (
-        patient?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.date.includes(searchTerm) ||
-        appointment.time.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.status.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    })
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-
-  const handleViewDetails = (appointment: any) => {
-    setSelectedAppointment(appointment)
-    setNotes(appointment.notes || "")
+  const formatTime = (timeString: string) => {
+    const time = new Date(`2000-01-01T${timeString}`)
+    return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
-  const handleCompleteAppointment = () => {
-    if (!selectedAppointment) return
-    setIsSubmitting(true)
+  const filteredAppointments = appointments.filter((a) => {
+    const searchLower = searchTerm.toLowerCase()
+    return (
+      a.patient.name.toLowerCase().includes(searchLower) ||
+      a.appointment.appointment_date.toLowerCase().includes(searchLower) ||
+      (a.slot.slot_time && formatTime(a.slot.slot_time).toLowerCase().includes(searchLower)) ||
+      (a.appointment.reason && a.appointment.reason.toLowerCase().includes(searchLower)) ||
+      a.appointment.status.toLowerCase().includes(searchLower)
+    )
+  })
 
-    updateAppointment(selectedAppointment.id, {
-      status: "Completed",
-      notes,
-    })
+  const bookedAppointments = filteredAppointments.filter((appointment) =>
+    appointment.appointment.status.toLowerCase() === "booked"
+  )
 
-    toast("Appointment completed", {
-      description: "The appointment has been marked as completed.",
-    })
+  const doneAppointments = filteredAppointments.filter((appointment) =>
+    appointment.appointment.status.toLowerCase() === "done"
+  )
 
-    setTimeout(() => {
-      setIsSubmitting(false)
-      setSelectedAppointment(null)
-      setNotes("")
-    }, 1000)
-  }
+  const renderCard = (appointment: any) => (
+    <Card key={appointment.appointment.id} className="rounded-xl shadow-sm border">
+      <CardHeader>
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle className="text-lg">{appointment.patient.name}</CardTitle>
+            <CardDescription className="mt-1">
+              {appointment.appointment.reason || "No reason provided"}
+            </CardDescription>
+          </div>
+          <span
+            className={`text-xs px-2 py-1 rounded-full font-medium ${
+              appointment.appointment.status.toLowerCase() === "booked"
+                ? "bg-blue-100 text-blue-700"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {appointment.appointment.status==='BOOKED'?'PENDING':"DONE"}
+          </span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center text-sm text-muted-foreground gap-4">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4" />
+            <span>{appointment.appointment.appointment_date}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            <span>{formatTime(appointment.slot.slot_time)}</span>
+          </div>
+        </div>
+        <Button 
+          variant="outline" 
+          className="w-full mt-3 rounded-lg"
+          onClick={() => navigate(`/appointment/${appointment.appointment.id}`)}
+        >
+          View Details
+        </Button>
+      </CardContent>
+    </Card>
+  )
 
   return (
     <DashboardLayout role="doctor">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">All Appointments</h1>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Appointments</h1>
+
+        <div className="relative w-full">
+          <Search className="absolute left-3 top-3 h-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search by name, date, status..."
+            className="pl-10 rounded-lg"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
-        <div className="flex items-center space-x-2 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search appointments..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-        </div>
+        <Tabs defaultValue="booked" className="space-y-4">
+          <TabsList className="rounded-lg">
+            <TabsTrigger value="booked" className="rounded-md">Upcoming</TabsTrigger>
+            <TabsTrigger value="done" className="rounded-md">Past</TabsTrigger>
+          </TabsList>
 
-        <div className="space-y-4">
-          {doctorAppointments.length > 0 ? (
-            doctorAppointments.map((appointment) => {
-              const patient = getPatientById(appointment.patientId)
-              return (
-                <Card key={appointment.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="flex flex-col md:flex-row">
-                      <div className="flex-1 p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-100">
-                            <Calendar className="h-6 w-6 text-teal-600" />
-                          </div>
-                          <div className="space-y-1">
-                            <h3 className="font-medium">{patient?.name}</h3>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Calendar className="mr-1 h-4 w-4" />
-                              <span>{appointment.date}</span>
-                              <Clock className="ml-3 mr-1 h-4 w-4" />
-                              <span>{appointment.time}</span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">Reason: {appointment.reason}</p>
-                            <div className="flex items-center mt-1">
-                              <span
-                                className={`text-xs font-medium px-2 py-1 rounded-full ${
-                                  appointment.status === "Confirmed"
-                                    ? "bg-green-100 text-green-800"
-                                    : appointment.status === "Pending"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : appointment.status === "Completed"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {appointment.status}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-end space-x-2 bg-gray-50 p-4 md:w-48">
-                        <Button variant="outline" size="sm" onClick={() => handleViewDetails(appointment)}>
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10">
-                <Calendar className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">You have no appointments</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+          <TabsContent value="booked">
+            {bookedAppointments.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {bookedAppointments.map(renderCard)}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 space-y-2 rounded-lg border border-dashed">
+                <Calendar className="w-12 h-12 text-muted-foreground" />
+                <p className="text-lg font-medium text-muted-foreground">
+                  No upcoming appointments
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  You don't have any booked appointments yet
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="done">
+            {doneAppointments.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {doneAppointments.map(renderCard)}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 space-y-2 rounded-lg border border-dashed">
+                <Calendar className="w-12 h-12 text-muted-foreground" />
+                <p className="text-lg font-medium text-muted-foreground">
+                  No past appointments
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Your completed appointments will appear here
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Dialog open={!!selectedAppointment} onOpenChange={(open) => !open && setSelectedAppointment(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Appointment Details</DialogTitle>
-            <DialogDescription>View and manage appointment information</DialogDescription>
-          </DialogHeader>
-          {selectedAppointment && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium">Patient</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {getPatientById(selectedAppointment.patientId)?.name}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">Date & Time</h4>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedAppointment.date} at {selectedAppointment.time}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">Reason</h4>
-                  <p className="text-sm text-muted-foreground">{selectedAppointment.reason}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium">Status</h4>
-                  <p className="text-sm text-muted-foreground">{selectedAppointment.status}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium">Notes</h4>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Add notes about this appointment"
-                  rows={4}
-                  disabled={["Completed", "Cancelled"].includes(selectedAppointment.status)}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setSelectedAppointment(null)}>
-                  Close
-                </Button>
-                {selectedAppointment.status === "Confirmed" && (
-                  <Button
-                    className="bg-teal-600 hover:bg-teal-700"
-                    onClick={handleCompleteAppointment}
-                    disabled={isSubmitting}
-                  >
-                    <Check className="mr-2 h-4 w-4" />
-                    {isSubmitting ? "Saving..." : "Mark as Completed"}
-                  </Button>
-                )}
-                {selectedAppointment.status === "Completed" && (
-                  <Button
-                    variant="outline"
-                    className="border-teal-500 text-teal-500 hover:bg-teal-50 hover:text-teal-600"
-                  >
-                    <FileText className="mr-2 h-4 w-4" />
-                    Generate Report
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   )
 }
