@@ -1,46 +1,27 @@
-import type React from "react"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Pill, Search, Filter, Plus } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Pill, Search, Filter } from "lucide-react"
 import DashboardLayout from "@/components/dashboard-layout"
 import { useCareFlowStore } from "@/lib/store"
-import { patients, getPatientById } from "@/lib/data"
-import { toast } from "sonner"
+import { getPatientById } from "@/lib/data"
 import { useNavigate } from "react-router"
 
 export default function DoctorPrescriptions() {
   const navigate = useNavigate()
   const currentUser = useCareFlowStore((state) => state.currentUser)
   const prescriptions = useCareFlowStore((state) => state.prescriptions)
-  const addPrescription = useCareFlowStore((state) => state.addPrescription)
 
   const [searchTerm, setSearchTerm] = useState("")
-  const [newPrescriptionDialogOpen, setNewPrescriptionDialogOpen] = useState(false)
-  const [patientId, setPatientId] = useState("")
-  const [medication, setMedication] = useState("")
-  const [dosage, setDosage] = useState("")
-  const [duration, setDuration] = useState("")
-  const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (!currentUser) {
+    navigate("/login")
+    return null
+  }
 
   // Filter prescriptions for the current doctor
-  const doctorPrescriptions = currentUser
-    ? prescriptions.filter((prescription) => prescription.doctorId === currentUser.id)
-    : []
+  const doctorPrescriptions = prescriptions.filter((prescription) => prescription.doctorId === currentUser.id)
 
   // Filter prescriptions based on search term
   const filteredPrescriptions = doctorPrescriptions.filter((prescription) => {
@@ -59,61 +40,11 @@ export default function DoctorPrescriptions() {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   )
 
-  const handleCreatePrescription = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!patientId || !medication || !dosage || !duration) {
-      toast.error("Missing information", {
-        description: "Please fill in all required fields.",
-      })
-      return
-    }
-
-    setIsSubmitting(true)
-
-    // Create new prescription
-    const newPrescription = {
-      patientId: Number.parseInt(patientId),
-      doctorId: currentUser?.id || 0,
-      medication,
-      dosage,
-      duration,
-      date: new Date().toISOString().split("T")[0],
-      notes,
-    }
-
-    // Add prescription to store
-    addPrescription(newPrescription)
-
-    // Reset form
-    setPatientId("")
-    setMedication("")
-    setDosage("")
-    setDuration("")
-    setNotes("")
-    setIsSubmitting(false)
-    setNewPrescriptionDialogOpen(false)
-
-    // Show success message
-    toast("Prescription created", {
-      description: "The prescription has been successfully created.",
-    })
-  }
-
-  if (!currentUser) {
-    navigate("/login")
-    return null
-  }
-
   return (
     <DashboardLayout role="doctor">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Prescriptions</h1>
-          <Button className="bg-teal-600 hover:bg-teal-700" onClick={() => setNewPrescriptionDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Prescription
-          </Button>
         </div>
 
         <div className="flex items-center space-x-2 mb-4">
@@ -173,94 +104,11 @@ export default function DoctorPrescriptions() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-10">
               <Pill className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground mb-2">You haven't created any prescriptions yet</p>
-              <Button className="bg-teal-600 hover:bg-teal-700 mt-4" onClick={() => setNewPrescriptionDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Prescription
-              </Button>
+              <p className="text-muted-foreground mb-2">No prescriptions found</p>
             </CardContent>
           </Card>
         )}
       </div>
-
-      <Dialog open={newPrescriptionDialogOpen} onOpenChange={setNewPrescriptionDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Prescription</DialogTitle>
-            <DialogDescription>Create a new prescription for a patient.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreatePrescription} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="patient">Patient</Label>
-              <Select value={patientId} onValueChange={setPatientId}>
-                <SelectTrigger id="patient">
-                  <SelectValue placeholder="Select patient" />
-                </SelectTrigger>
-                <SelectContent>
-                  {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id.toString()}>
-                      {patient.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="medication">Medication</Label>
-              <Input
-                id="medication"
-                value={medication}
-                onChange={(e) => setMedication(e.target.value)}
-                placeholder="e.g., Amoxicillin 500mg"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="dosage">Dosage</Label>
-              <Input
-                id="dosage"
-                value={dosage}
-                onChange={(e) => setDosage(e.target.value)}
-                placeholder="e.g., 1 tablet 3 times daily"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="duration">Duration</Label>
-              <Input
-                id="duration"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="e.g., 7 days, 30 days, As needed"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Additional Notes</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g., Take with food, Avoid alcohol"
-                rows={3}
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setNewPrescriptionDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-teal-600 hover:bg-teal-700" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Prescription"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   )
 }
