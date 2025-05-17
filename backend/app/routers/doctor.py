@@ -94,13 +94,19 @@ async def get_patient_record(
         raise HTTPException(status_code=422, detail=str(e))
 
 
-# get appointment details
 @router.get("/appointments", summary="Get all appointments for the current doctor")
 async def get_doctor_appointments():
-    doctor_id = 3  #replace this with real id 
-    appointments = await Appointment.filter(doctor_id=doctor_id).prefetch_related("slot_id", "patient_id")
+    doctor_id = 2  # Replace this with real authenticated doctor ID
+    
+    # Filter by doctor_id and status in ("BOOKED", "DONE")
+    appointments = await Appointment.filter(
+        doctor_id=doctor_id,
+        status__in=["BOOKED", "DONE"]
+    ).prefetch_related("slot_id", "patient_id")
+    
     if not appointments:
         raise HTTPException(status_code=404, detail="No appointments found for this doctor")
+    
     results = []
     for appt in appointments:
         slot = await Slot_Pydantic.from_tortoise_orm(appt.slot_id)
