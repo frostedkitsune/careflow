@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+// components/DoctorDashboard.tsx
+import { useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -7,25 +8,19 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Calendar,
-  Clock,
-  FileText,
-  Users,
-  Pill,
-} from "lucide-react"
+import { Calendar, Clock, FileText, Users, Pill } from "lucide-react"
 import { Link } from "react-router"
 import DashboardLayout from "@/components/dashboard-layout"
+import { useAppointmentStore } from "@/store/appointmentStore"
 
 export default function DoctorDashboard() {
-  const [appointments, setAppointments] = useState<any[]>([])
+  const { appointments, setAppointments } = useAppointmentStore()
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         const res = await fetch("http://localhost:8000/doctor/appointments")
         const data = await res.json()
-        console.log(data)
         setAppointments(data)
       } catch (error) {
         console.error("Error fetching appointments:", error)
@@ -33,16 +28,16 @@ export default function DoctorDashboard() {
     }
 
     fetchAppointments()
-  }, [])
+  }, [setAppointments])
 
-  // Get today's date in yyyy-mm-dd
-  const today = new Date().toISOString().split("T")[0]
-  console.log(today);
+
   
 
-  const todaysAppointments = appointments.filter(({ appointment }) => {
-    return appointment.appointment_date === today
-  })
+  const today = new Date().toISOString().split("T")[0]
+
+  const todaysAppointments = appointments.filter(
+    ({ appointment }) => appointment.appointment_date === today
+  )
 
   return (
     <DashboardLayout role="doctor">
