@@ -1,16 +1,48 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, FileText, Users, Pill } from "lucide-react"
-import {Link} from "react-router"
+import {
+  Calendar,
+  Clock,
+  FileText,
+  Users,
+  Pill,
+} from "lucide-react"
+import { Link } from "react-router"
 import DashboardLayout from "@/components/dashboard-layout"
 
 export default function DoctorDashboard() {
-  // Mock data for today's appointments
-  const todaysAppointments = [
-    { id: 1, patient: "Emily Johnson", time: "10:00 AM", reason: "Annual checkup", status: "Confirmed" },
-    { id: 2, patient: "Robert Smith", time: "11:30 AM", reason: "Follow-up", status: "Confirmed" },
-    { id: 3, patient: "Maria Garcia", time: "2:00 PM", reason: "Consultation", status: "Confirmed" },
-  ]
+  const [appointments, setAppointments] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/doctor/appointments")
+        const data = await res.json()
+        console.log(data)
+        setAppointments(data)
+      } catch (error) {
+        console.error("Error fetching appointments:", error)
+      }
+    }
+
+    fetchAppointments()
+  }, [])
+
+  // Get today's date in yyyy-mm-dd
+  const today = new Date().toISOString().split("T")[0]
+  console.log(today);
+  
+
+  const todaysAppointments = appointments.filter(({ appointment }) => {
+    return appointment.appointment_date === today
+  })
 
   return (
     <DashboardLayout role="doctor">
@@ -31,7 +63,7 @@ export default function DoctorDashboard() {
             <CardContent>
               <div className="text-2xl font-bold">{todaysAppointments.length}</div>
               <p className="text-xs text-muted-foreground">
-                Next appointment at {todaysAppointments[0]?.time || "No appointments today"}
+                Next appointment at {todaysAppointments[0]?.slot?.slot_time?.slice(0, 5) || "N/A"}
               </p>
             </CardContent>
           </Card>
@@ -78,18 +110,23 @@ export default function DoctorDashboard() {
           <CardContent>
             {todaysAppointments.length > 0 ? (
               <div className="space-y-4">
-                {todaysAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between rounded-md border p-4">
+                {todaysAppointments.map(({ appointment, patient, slot }) => (
+                  <div
+                    key={appointment.id}
+                    className="flex items-center justify-between rounded-md border p-4"
+                  >
                     <div className="flex items-start space-x-4">
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-100">
                         <Clock className="h-6 w-6 text-teal-600" />
                       </div>
                       <div className="space-y-1">
-                        <p className="font-medium">{appointment.patient}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.reason}</p>
+                        <p className="font-medium">{patient.name}</p>
+                        <p className="text-sm text-muted-foreground">Checkup / Consultation</p>
                         <div className="flex items-center">
                           <Clock className="mr-1 h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">{appointment.time}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {slot.slot_time?.slice(0, 5)}
+                          </span>
                           <span className="ml-3 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                             {appointment.status}
                           </span>
@@ -109,82 +146,6 @@ export default function DoctorDashboard() {
             )}
           </CardContent>
         </Card>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Patient Records</CardTitle>
-              <CardDescription>Recently updated patient records</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 rounded-md border p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">Emily Johnson</p>
-                    <p className="text-sm text-muted-foreground">Updated: May 10, 2025</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 rounded-md border p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">Robert Smith</p>
-                    <p className="text-sm text-muted-foreground">Updated: May 9, 2025</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link to="/doctor/patient-records">
-                  <Button variant="outline" className="w-full">
-                    View All Records
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Prescriptions</CardTitle>
-              <CardDescription>Recently issued prescriptions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 rounded-md border p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                    <Pill className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">Maria Garcia</p>
-                    <p className="text-sm text-muted-foreground">Amoxicillin 500mg</p>
-                    <p className="text-sm text-muted-foreground">Issued: May 8, 2025</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 rounded-md border p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                    <Pill className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="font-medium">James Wilson</p>
-                    <p className="text-sm text-muted-foreground">Lisinopril 10mg</p>
-                    <p className="text-sm text-muted-foreground">Issued: May 7, 2025</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <Link to="/doctor/prescriptions">
-                  <Button variant="outline" className="w-full">
-                    View All Prescriptions
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </DashboardLayout>
   )
