@@ -63,8 +63,10 @@ class PrescriptionCreateData(BaseModel):
 # route for create prescription
 @router.post("/create")
 async def create_prescription(prescription_data: PrescriptionCreateData):
+    print(prescription_data)
     await Prescription.create(
-        appointment_id=prescription_data.appointment_id,
+        id = 21,
+        appointment_id_id=prescription_data.appointment_id,
         observation=prescription_data.observation,
         medication=prescription_data.medication,
         advise=prescription_data.advise,
