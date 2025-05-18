@@ -97,11 +97,10 @@ const DoctorAppointmentsDetails = () => {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    appointment_id: appointment_id,
+                    appointment_id: +appointment_id!,
                     // patient_id: appointment?.patient.id
                 }),
             });
-            console.log("hhh");
 
             if (!response.ok) throw new Error("Failed to create prescription");
 
