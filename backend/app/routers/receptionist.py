@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel
 
-from app.database import Appointment, Appointment_Pydantic, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot_Pydantic
+from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot_Pydantic
 
 router = APIRouter(prefix="/receptionist", tags=["receptionist"])
 
@@ -55,6 +55,37 @@ async def get_all_appointments():
 
     return results
 
+# route for update status and receptionist
+@router.patch("/appointment/status", summary="Update appointment status (approve or decline)")
+async def update_appointment_status(
+    appointment_id: int = Body(..., embed=True),
+    action: str = Body(..., embed=True)  # "approve" or "decline"
+):
+
+    # hardcoded receptionist id, later change it
+    receptionist_id = 1
+
+    # Get the appointment
+    appointment = await Appointment.get_or_none(id=appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    # Validate action
+    if action.lower() == "approve":
+        appointment.status = AppointmentStatusEnum.DONE
+    elif action.lower() == "decline":
+        appointment.status = AppointmentStatusEnum.REJECTED
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'approve' or 'decline'.")
+
+    # Assign receptionist
+    appointment.receptionist_id_id = receptionist_id 
+
+    await appointment.save()
+    return {"msg": "Appointment status updated successfully"}
+
+
+
 # get a single appointment by id
 @router.get("/appointment/{id}", summary="Get single appointment with full details")
 async def get_appointment_by_id(id: int):
@@ -73,3 +104,4 @@ async def get_appointment_by_id(id: int):
         "doctor": doctor,
         "slot": slot
     }
+
