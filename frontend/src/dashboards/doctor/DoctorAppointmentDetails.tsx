@@ -11,12 +11,13 @@ import DashboardLayout from "@/components/dashboard-layout";
 import { useCareFlowStore } from "@/lib/store";
 import { useAppointmentStore } from "@/store/appointmentStore";
 import { type PrescriptionData, type RecordData } from "@/lib/types";
+import { toast } from "sonner"
 
 const DoctorAppointmentsDetails = () => {
     const { appointment_id } = useParams();
     const navigate = useNavigate();
     const currentUser = useCareFlowStore((state) => state.currentUser);
-    const { appointments } = useAppointmentStore();
+    const { appointments, setAppointments } = useAppointmentStore();
     const [activeTab, setActiveTab] = useState("overview");
     const [prescription, setPrescription] = useState<PrescriptionData | null>(null);
     const [record, setRecord] = useState<RecordData | null>(null);
@@ -37,6 +38,19 @@ const DoctorAppointmentsDetails = () => {
         test: ""
     });
 
+    useEffect(() => {
+        const fetchAppointments = async () => {
+            try {
+                const res = await fetch("http://localhost:8000/doctor/appointments")
+                const data = await res.json()
+                setAppointments(data)
+            } catch (error) {
+                console.error("Error fetching appointments:", error)
+            }
+        }
+
+        fetchAppointments()
+    }, [setAppointments])
     // Find the current appointment
     const appointment = appointments.find(a => a.appointment.id.toString() === appointment_id);
 
@@ -87,9 +101,9 @@ const DoctorAppointmentsDetails = () => {
     const handleCreatePrescription = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
-        
+
         try {
-            
+
             const response = await fetch("http://localhost:8000/prescription/create", {
                 method: "POST",
                 headers: {
@@ -113,7 +127,10 @@ const DoctorAppointmentsDetails = () => {
                 advise: "",
                 test: ""
             });
+            toast.success("Prescription created successfully")
+            navigate(0);
         } catch (err: any) {
+            toast.error("Prescription created failed")
             console.error("Error creating prescription:", err);
         } finally {
             setIsSubmitting(false);
@@ -288,7 +305,7 @@ const DoctorAppointmentsDetails = () => {
 
                     <TabsContent value="prescriptions" className="space-y-6">
                         <div className="flex justify-end">
-                            <Button 
+                            <Button
                                 onClick={() => setIsPrescriptionDialogOpen(true)}
                                 className="gap-2"
                             >
@@ -296,7 +313,7 @@ const DoctorAppointmentsDetails = () => {
                                 Create Prescription
                             </Button>
                         </div>
-                        
+
                         {loading.prescription ? (
                             <div className="flex items-center justify-center py-12">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
@@ -458,15 +475,15 @@ const DoctorAppointmentsDetails = () => {
                         </div>
 
                         <DialogFooter>
-                            <Button 
-                                type="button" 
-                                variant="outline" 
+                            <Button
+                                type="button"
+                                variant="outline"
                                 onClick={() => setIsPrescriptionDialogOpen(false)}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? "Creating..." : "Create Prescription"}

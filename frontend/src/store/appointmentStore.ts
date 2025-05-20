@@ -1,18 +1,19 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export interface AppointmentData {
   appointment: {
     id: number
-    appointment_date: string // ISO date format (e.g., "2025-05-11")
+    appointment_date: string
     reschedule_date: string | null
-    status: "BOOKED" | "CANCELLED" | "COMPLETED" | string // extend as needed
+    status: "BOOKED" | "CANCELLED" | "COMPLETED" | string
     record_ids: number[]
     reason: string
   }
   slot: {
     id: number
     available: boolean
-    slot_time: string // ISO time format (e.g., "10:00:00Z")
+    slot_time: string
     day: "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN" | string
   }
   patient: {
@@ -20,7 +21,7 @@ export interface AppointmentData {
     name: string
     email: string
     phone: string
-    dob: string // ISO date format (e.g., "1985-05-15")
+    dob: string
     gender: "male" | "female" | "other" | string
     address: string
     emergency_person: string
@@ -29,13 +30,20 @@ export interface AppointmentData {
   }
 }
 
-
 interface AppointmentState {
   appointments: AppointmentData[]
   setAppointments: (data: AppointmentData[]) => void
 }
 
-export const useAppointmentStore = create<AppointmentState>((set) => ({
-  appointments: [],
-  setAppointments: (data) => set({ appointments: data })
-}))
+export const useAppointmentStore = create<AppointmentState>()(
+  persist(
+    (set) => ({
+      appointments: [],
+      setAppointments: (data) => set({ appointments: data }),
+    }),
+    {
+      name: 'appointment-storage',
+     
+    }
+  )
+)
