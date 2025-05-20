@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import {
   Tabs,
@@ -17,9 +17,22 @@ import { useAppointmentStore } from "@/store/appointmentStore"
 export default function DoctorAppointments() {
   const navigate = useNavigate()
   const currentUser = useCareFlowStore((state) => state.currentUser)
-  const { appointments } = useAppointmentStore()
+  const { appointments, setAppointments } = useAppointmentStore()
 
   const [searchTerm, setSearchTerm] = useState("")
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/doctor/appointments")
+        const data = await res.json()
+        setAppointments(data)
+      } catch (error) {
+        console.error("Error fetching appointments:", error)
+      }
+    }
+
+    fetchAppointments()
+  }, [setAppointments])
 
   if (!currentUser) {
     navigate("/login")
@@ -61,13 +74,12 @@ export default function DoctorAppointments() {
             </CardDescription>
           </div>
           <span
-            className={`text-xs px-2 py-1 rounded-full font-medium ${
-              appointment.appointment.status.toLowerCase() === "booked"
+            className={`text-xs px-2 py-1 rounded-full font-medium ${appointment.appointment.status.toLowerCase() === "booked"
                 ? "bg-blue-100 text-blue-700"
                 : "bg-gray-100 text-gray-700"
-            }`}
+              }`}
           >
-            {appointment.appointment.status==='BOOKED'?'PENDING':"DONE"}
+            {appointment.appointment.status === 'BOOKED' ? 'PENDING' : "DONE"}
           </span>
         </div>
       </CardHeader>
@@ -82,8 +94,8 @@ export default function DoctorAppointments() {
             <span>{formatTime(appointment.slot.slot_time)}</span>
           </div>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-full mt-3 rounded-lg"
           onClick={() => navigate(`/doctor/appointment/${appointment.appointment.id}`)}
         >
