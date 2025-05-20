@@ -3,7 +3,7 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
 
 # import the Model
-from app.database import Appointment, Appointment_Pydantic, Doctor, Doctor_Pydantic, Patient_Pydantic, Records, Slot_Pydantic
+from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, Patient_Pydantic, Records, Slot_Pydantic
 
 # router
 router = APIRouter(prefix="/doctor", tags=["doctor"])
@@ -120,3 +120,23 @@ async def get_doctor_appointments():
         })
 
     return results
+
+@router.patch("appointment/{appointment_id}", summary="Mark appointment as DONE if it's currently BOOKED")
+async def mark_appointment_completed(
+    appointment_id: int = Path(..., description="ID of the appointment")
+):
+    appointment = await Appointment.get_or_none(id=appointment_id)
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+
+    if appointment.status != AppointmentStatusEnum.BOOKED:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Appointment status is '{appointment.status}', not 'BOOKED'"
+        )
+
+    appointment.status = AppointmentStatusEnum.DONE
+    await appointment.save()
+
+    return {"msg": "Appointment marked as DONE"}
