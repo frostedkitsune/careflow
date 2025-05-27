@@ -1,5 +1,5 @@
 // components/DoctorDashboard.tsx
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import {
   Card,
   CardContent,
@@ -8,13 +8,20 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, Clock, FileText, Users, Pill } from "lucide-react"
-import { Link } from "react-router"
+import { Calendar, Clock, FileText, Users, Pill, CircleCheck } from "lucide-react"
+import { Link, useNavigate } from "react-router"
 import DashboardLayout from "@/components/dashboard-layout"
 import { useAppointmentStore } from "@/store/appointmentStore"
+import { toast } from "sonner"
 
 export default function DoctorDashboard() {
+  const navigate = useNavigate()
   const { appointments, setAppointments } = useAppointmentStore()
+      const [loading, setLoading] = useState({
+          prescription: false,
+          record: false,
+          complete: false
+      });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -30,14 +37,39 @@ export default function DoctorDashboard() {
     fetchAppointments()
   }, [setAppointments])
 
-
-  
-
   const today = new Date().toISOString().split("T")[0]
-
   const todaysAppointments = appointments.filter(
     ({ appointment }) => appointment.appointment_date === today
   )
+  console.log(todaysAppointments);
+  
+
+  const handleComplete = async (appointmentId: number) => {
+    try {
+      setLoading(prev => ({ ...prev, complete: true }));
+      const response = await fetch(
+        `http://localhost:8000/doctor/appointment/${appointmentId}`,
+        {
+          method: "PATCH"
+        }
+      )
+
+      if (!response.ok) {
+        throw new Error("Failed to update appointment status")
+      }
+
+      // Refresh the appointments
+      const res = await fetch("http://localhost:8000/doctor/appointments")
+      const data = await res.json()
+      setAppointments(data)
+      setLoading(prev => ({ ...prev, complete: false }));
+      toast.success("Appointed update successfully")
+      
+    } catch (error) {
+      console.error("Error marking appointment as done:", error)
+      toast.error("Appointed update failed")
+    }
+  }
 
   return (
     <DashboardLayout role="doctor">
@@ -104,7 +136,7 @@ export default function DoctorDashboard() {
           </CardHeader>
           <CardContent>
             {todaysAppointments.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4 overflow-y-scroll">
                 {todaysAppointments.map(({ appointment, patient, slot }) => (
                   <div
                     key={appointment.id}
@@ -123,15 +155,41 @@ export default function DoctorDashboard() {
                             {slot.slot_time?.slice(0, 5)}
                           </span>
                           <span className="ml-3 inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                            {appointment.status}
+                            {appointment.status==="BOOKED"?"PENDING":`${appointment.status}`}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/doctor/appointment/${appointment.id}`)}
+                      >
                         View Details
                       </Button>
+                      {appointment.status === "BOOKED" && (
+                        <Button 
+                            className="bg-transparent border border-primary text-primary hover:bg-primary hover:text-white cursor-pointer" 
+                            onClick={() => handleComplete(appointment.id)}
+                            disabled={loading.complete}
+                        >
+                            {loading.complete ? (
+                                <span className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Processing...
+                                </span>
+                            ) : (
+                                <>
+                                    <CircleCheck className="mr-2 h-4 w-4" /> 
+                                    Mark as Done
+                                </>
+                            )}
+                        </Button>
+                    )}
                     </div>
                   </div>
                 ))}

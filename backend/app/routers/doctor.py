@@ -121,7 +121,7 @@ async def get_doctor_appointments():
 
     return results
 
-@router.patch("appointment/{appointment_id}", summary="Mark appointment as DONE if it's currently BOOKED")
+@router.patch("/appointment/{appointment_id}", summary="Mark appointment as DONE if it's currently BOOKED")
 async def mark_appointment_completed(
     appointment_id: int = Path(..., description="ID of the appointment")
 ):
