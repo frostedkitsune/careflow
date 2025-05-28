@@ -23,6 +23,8 @@ import ReceptionistProfile from './dashboards/receptionist/ReceptionistProfile.t
 import ReceptionistTestResults from './dashboards/receptionist/ReceptionistTestResults.tsx';
 import './globals.css';
 import Index from './Index.tsx';
+import ReceptionistSlots from './dashboards/receptionist/ReceptionistSlots.tsx';
+import ReceptionistSlotsManager from './dashboards/receptionist/ReceptionistSlotsManager.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -39,6 +41,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/receptionist">
           <Route path="dashboard" element={<ReceptionistDashboard />} />
           <Route path="appointments" element={<ReceptionistAppointments />} />
+          <Route path="slots" element={<ReceptionistSlots />} />
+          <Route path="slots/:doctor_id" element={<ReceptionistSlotsManager />} />
           <Route path="test-results" element={<ReceptionistTestResults />} />
           <Route path="profile" element={<ReceptionistProfile />} />
         </Route>

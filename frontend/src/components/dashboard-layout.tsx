@@ -1,30 +1,32 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import {
-  SidebarProvider,
   Sidebar,
   SidebarContent,
-  SidebarHeader,
   SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
   SidebarTrigger
 } from "@/components/ui/sidebar"
+import { Toaster } from "@/components/ui/sonner"
+import { users } from "@/lib/data"
+import { useCareFlowStore } from "@/lib/store"
 import {
-  LayoutDashboard,
   Calendar,
   FileText,
+  Grid3x3,
+  LayoutDashboard,
+  Pill,
+  Settings,
   Upload,
-  Settings, Users,
-  Pill
+  Users
 } from "lucide-react"
-import { useCareFlowStore } from "@/lib/store"
-import { users } from "@/lib/data"
-import { Toaster } from "@/components/ui/sonner"
 import { Link, useLocation, useNavigate } from "react-router"
 import { NavUser } from "./nav-user"
 
@@ -38,7 +40,7 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
   const navigate = useNavigate()
   const currentUser = useCareFlowStore((state) => state.currentUser)
   const [userName, setUserName] = useState("")
-  
+
   useEffect(() => {
     // Check if user is logged in with the correct role
     if (!currentUser) {
@@ -107,6 +109,11 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           title: "Manage Appointments",
           href: `/${role}/appointments`,
           icon: Calendar,
+        },
+        {
+          title: "Manage Slots",
+          href: `/${role}/slots`,
+          icon: Grid3x3,
         },
         {
           title: "Upload Test Results",
