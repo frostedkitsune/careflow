@@ -157,7 +157,7 @@ class Slot(models.Model):
     id = fields.IntField(primary_key=True)
     doctor_id = fields.ForeignKeyField("models.Doctor", related_name="slots")
     available = fields.BooleanField()
-    slot_time = fields.TimeField()
+    slot_time = fields.CharField(max_length=255)
     day = fields.CharField(max_length=3)
 
     class Meta:
