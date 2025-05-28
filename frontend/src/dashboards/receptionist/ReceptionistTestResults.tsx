@@ -1,11 +1,6 @@
-import { useState } from "react"
+import DashboardLayout from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileText, Upload, Search, Filter } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -14,12 +9,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import DashboardLayout from "@/components/dashboard-layout"
+import { getPatientById, patients } from "@/lib/data"
 import { useCareFlowStore } from "@/lib/store"
-import { patients, getPatientById } from "@/lib/data"
-import { toast } from "sonner"
+import { FileText, Filter, Search, Upload } from "lucide-react"
+import { useState } from "react"
 import { useNavigate } from "react-router"
+import { toast } from "sonner"
 
 export default function ReceptionistTestResults() {
   const navigate = useNavigate()
@@ -97,7 +96,7 @@ export default function ReceptionistTestResults() {
       setUploadDialogOpen(false)
 
       // Show success message
-      toast("Test results uploaded",{
+      toast("Test results uploaded", {
         description: "The test results have been successfully uploaded.",
       })
     }, 1500)
@@ -286,18 +285,6 @@ export default function ReceptionistTestResults() {
                   <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="testResults">Test Results</Label>
-              <Textarea
-                id="testResults"
-                value={testResultText}
-                onChange={(e) => setTestResultText(e.target.value)}
-                placeholder="Enter the test results here"
-                rows={5}
-                required
-              />
             </div>
 
             <div className="space-y-2">
