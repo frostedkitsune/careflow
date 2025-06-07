@@ -16,7 +16,7 @@ async def get_receptionist_data():
 # route /doctor(GET)
 @router.get("/doctors", summary="Get all doctor IDs with names")
 async def get_all_doctors():
-    doctors = await Doctor.all().values("id", "name")
+    doctors = await Doctor.all().values("id", "name", "specialization")
     return {"doctors": doctors}
 
 
