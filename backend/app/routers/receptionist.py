@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel
 
-from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot_Pydantic
+from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot_Pydantic
 
 router = APIRouter(prefix="/receptionist", tags=["receptionist"])
 
@@ -11,6 +11,13 @@ router = APIRouter(prefix="/receptionist", tags=["receptionist"])
 async def get_receptionist_data():
     receptionist = await Receptionist.get_or_none(id=1).values()
     return receptionist
+
+
+# route /doctor(GET)
+@router.get("/doctors", summary="Get all doctor IDs with names")
+async def get_all_doctors():
+    doctors = await Doctor.all().values("id", "name")
+    return {"doctors": doctors}
 
 
 # model for create receptionist
@@ -31,11 +38,11 @@ async def add_receptionist(receptionist_data: ReceptionistCreateData):
     # print(receptionist_data)
     return {"msg": "receptionist created"}
 
+
 # route for get all apppointment
 @router.get("/appointment", summary="Get all appointments with full details")
 async def get_all_appointments():
     appointments = await Appointment.all().prefetch_related("patient_id", "doctor_id", "slot_id")
-
     if not appointments:
         raise HTTPException(status_code=404, detail="No appointments found")
 
@@ -52,7 +59,6 @@ async def get_all_appointments():
             "doctor": doctor,
             "slot": slot
         })
-
     return results
 
 # route for update status and receptionist
