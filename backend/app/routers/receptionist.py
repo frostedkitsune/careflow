@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel
+from datetime import date
 
 from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot, Slot_Pydantic
 
@@ -149,7 +150,22 @@ async def update_appointment_status(
     await appointment.save()
     return {"msg": "Appointment status updated successfully"}
 
+# reschedule the appointment
+@router.patch("/appointment/reschedule", summary="Reschedule an appointment")
+async def reschedule_appointment(
+    appointment_id: int = Body(..., embed=True),
+    date: date = Body(..., embed=True)
+):
+    # Get the appointment
+    appointment = await Appointment.get_or_none(id=appointment_id)
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
 
+    # Update the reschedule date
+    appointment.reschedule_date = date
+    await appointment.save()
+
+    return {"msg": "Appointment rescheduled successfully"}
 
 
 # get a single appointment by id
