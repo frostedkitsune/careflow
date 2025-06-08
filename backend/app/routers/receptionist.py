@@ -118,11 +118,10 @@ async def get_all_appointments():
         })
     return results
 
-# route for update status and receptionist
-@router.patch("/appointment/status", summary="Update appointment status (approve or decline)")
+@router.patch("/appointment/status", summary="Update appointment status (approve, decline, or re-approve)")
 async def update_appointment_status(
     appointment_id: int = Body(..., embed=True),
-    action: str = Body(..., embed=True)  # "approve" or "decline"
+    action: str = Body(..., embed=True)  # "approve", "decline", or "re-approve"
 ):
 
     # hardcoded receptionist id, later change it
@@ -134,18 +133,22 @@ async def update_appointment_status(
         raise HTTPException(status_code=404, detail="Appointment not found")
 
     # Validate action
-    if action.lower() == "approve":
+    action = action.lower()
+    if action == "approve":
         appointment.status = AppointmentStatusEnum.DONE
-    elif action.lower() == "decline":
+    elif action == "decline":
         appointment.status = AppointmentStatusEnum.REJECTED
+    elif action == "re-approve":
+        appointment.status = AppointmentStatusEnum.PENDING
     else:
-        raise HTTPException(status_code=400, detail="Invalid action. Use 'approve' or 'decline'.")
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'approve', 'decline', or 're-approve'.")
 
     # Assign receptionist
     appointment.receptionist_id_id = receptionist_id 
 
     await appointment.save()
     return {"msg": "Appointment status updated successfully"}
+
 
 
 
