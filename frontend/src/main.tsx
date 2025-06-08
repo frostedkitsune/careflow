@@ -42,7 +42,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="dashboard" element={<ReceptionistDashboard />} />
           <Route path="appointments" element={<ReceptionistAppointments />} />
           <Route path="slots" element={<ReceptionistSlots />} />
-          <Route path="slots/:doctor_id" element={<ReceptionistSlotsManager />} />
+          <Route path="slots/:doctorId" element={<ReceptionistSlotsManager />} />
           <Route path="test-results" element={<ReceptionistTestResults />} />
           <Route path="profile" element={<ReceptionistProfile />} />
         </Route>
