@@ -1,7 +1,8 @@
+from typing import List, Optional
 from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel
 
-from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot_Pydantic
+from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, Patient_Pydantic, Receptionist, Receptionist_Pydantic, Slot, Slot_Pydantic
 
 router = APIRouter(prefix="/receptionist", tags=["receptionist"])
 
@@ -38,6 +39,62 @@ async def add_receptionist(receptionist_data: ReceptionistCreateData):
     # print(receptionist_data)
     return {"msg": "receptionist created"}
 
+# Fetch all slots for a specific doctor
+@router.get("/doctor/slots/{doctor_id}", summary="Get all slots of a specific doctor")
+async def get_doctor_slots(doctor_id: int):
+    slots = await Slot.filter(doctor_id=doctor_id).all().values("id", "available", "day", "slot_time")
+    if not slots:
+        raise HTTPException(status_code=404, detail="No slots found for this doctor")
+    return {"doctor_id": doctor_id, "slots": slots}
+
+# slot model for update or create new slot
+class SlotUpdateModel(BaseModel):
+    id: Optional[int] = None
+    slot_time: Optional[str] = None
+    day: Optional[str] = None
+    available: Optional[bool] = None
+
+
+@router.patch("/doctor/slots/{doctor_id}", summary="Update or create slots for a doctor")
+async def update_or_create_slots(doctor_id: int, updates: List[SlotUpdateModel]):
+    updated_slots = []
+
+    # Get the current max ID in Slot table
+    max_id_record = await Slot.all().order_by("-id").first()
+    current_max_id = max_id_record.id if max_id_record else 0
+
+    for update in updates:
+        if update.id is not None:
+            # Update existing slot
+            slot = await Slot.get_or_none(id=update.id, doctor_id=doctor_id)
+            if not slot:
+                continue
+
+            if update.available is not None:
+                slot.available = update.available
+            if update.slot_time is not None:
+                slot.slot_time = update.slot_time
+            if update.day is not None:
+                slot.day = update.day
+
+            await slot.save()
+            updated_slots.append(await Slot_Pydantic.from_tortoise_orm(slot))
+        else:
+            # Create new slot with manual ID
+            current_max_id += 1
+            new_slot = await Slot.create(
+                id=current_max_id,
+                doctor_id_id=doctor_id,
+                slot_time=update.slot_time,
+                day=update.day,
+                available=update.available,
+            )
+            updated_slots.append(await Slot_Pydantic.from_tortoise_orm(new_slot))
+
+    if not updated_slots:
+        raise HTTPException(status_code=400, detail="No slots were updated or created")
+
+    return {"msg": "Slots updated/created successfully", "slots": updated_slots}
 
 # route for get all apppointment
 @router.get("/appointment", summary="Get all appointments with full details")
