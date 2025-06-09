@@ -1,26 +1,27 @@
-// @/lib/doctor-store.ts
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export interface Doctor {
-  id: number
-  name: string
-  specialization: string 
-}
+export type Doctor = {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  specialization: string;
+};
 
-interface DoctorState {
-  doctors: Doctor[]
-  setDoctors: (data: Doctor[]) => void
-}
+type DoctorState = {
+  doctor: Doctor | null;
+  setDoctor: (data: Doctor) => void;
+};
 
 export const useDoctorStore = create<DoctorState>()(
   persist(
     (set) => ({
-      doctors: [],
-      setDoctors: (data) => set({ doctors: data }),
+      doctor: null,
+      setDoctor: (data: Doctor) => set({ doctor: data }),
     }),
     {
-      name: 'doctor-storage',
+      name: "doctor-info",
     }
   )
-)
+);

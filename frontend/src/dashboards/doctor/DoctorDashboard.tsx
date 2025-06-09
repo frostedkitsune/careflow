@@ -13,6 +13,7 @@ import { Link, useNavigate } from "react-router"
 import DashboardLayout from "@/components/dashboard-layout"
 import { useAppointmentStore } from "@/store/appointmentStore"
 import { toast } from "sonner"
+import { useDoctorStore } from "@/store/doctorStore"
 
 export default function DoctorDashboard() {
   const navigate = useNavigate()
@@ -22,6 +23,24 @@ export default function DoctorDashboard() {
           record: false,
           complete: false
       });
+  
+  // fetching doctor info
+  const { setDoctor } = useDoctorStore();
+
+useEffect(() => {
+  const fetchDoctorInfo = async () => {
+    try {
+      const res = await fetch("http://localhost:8000/doctor/me");
+      if (!res.ok) throw new Error("Failed to fetch doctor info");
+      const data = await res.json();
+      setDoctor(data);
+    } catch (error) {
+      console.error("Error fetching doctor info:", error);
+    }
+  };
+
+  fetchDoctorInfo();
+}, [setDoctor]);
 
   useEffect(() => {
     const fetchAppointments = async () => {

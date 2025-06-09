@@ -8,6 +8,7 @@ import { useCareFlowStore } from "@/lib/store";
 import { useNavigate } from "react-router";
 import { type PrescriptionData } from "@/lib/types";
 import { usePdfGenerator } from "@/hooks/usePdfGenerator";
+import { useDoctorStore } from "@/store/doctorStore";
 
 export default function DoctorPrescriptions() {
   const navigate = useNavigate();
@@ -17,6 +18,24 @@ export default function DoctorPrescriptions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { generatePdf } = usePdfGenerator();
+
+  const { setDoctor } = useDoctorStore();
+
+  useEffect(() => {
+    const fetchDoctorInfo = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/doctor/me");
+        if (!res.ok) throw new Error("Failed to fetch doctor info");
+        const data = await res.json();
+        setDoctor(data);
+      } catch (error) {
+        console.error("Error fetching doctor info:", error);
+      }
+    };
+
+    fetchDoctorInfo();
+  }, [setDoctor]);
+
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
@@ -42,10 +61,10 @@ export default function DoctorPrescriptions() {
     return null;
   }
 
-const handlePrint = async (prescription: PrescriptionData) => {
-  
-  await generatePdf(prescription);
-};
+  const handlePrint = async (prescription: PrescriptionData) => {
+
+    await generatePdf(prescription);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -140,9 +159,9 @@ const handlePrint = async (prescription: PrescriptionData) => {
                       </div>
                     </div>
                     <div className="flex items-center justify-end bg-gray-50 p-4 md:w-48">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handlePrint(data)}
                         className="gap-2"
                       >
