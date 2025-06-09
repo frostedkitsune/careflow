@@ -103,9 +103,9 @@ export default function ReceptionistAppointments() {
 
     try {
       setIsProcessing(true);
-      
+
       await rescheduleAppointment(selectedAppointment.appointment.id, rescheduleDate);
-      
+
       // Update local state and set status to PENDING
       const updatedAppointments = appointments.map((appt) => {
         if (appt.appointment.id === selectedAppointment.appointment.id) {
@@ -123,7 +123,7 @@ export default function ReceptionistAppointments() {
       });
 
       useAppointmentStore.setState({ appointments: updatedAppointments as AppointmentData[] });
-      
+
       toast.success("Appointment rescheduled successfully and moved to PENDING");
       setShowRescheduleDialog(false);
       setSelectedAppointment(null);
@@ -141,7 +141,7 @@ export default function ReceptionistAppointments() {
 
     try {
       setIsProcessing(true);
-      const action = dialogAction === "re-approve" ? "approve" : dialogAction;
+      const action = dialogAction === "re-approve" ? "re-approve" : dialogAction;
 
       const response = await fetch("http://localhost:8000/receptionist/appointment/status", {
         method: "PATCH",
@@ -157,9 +157,14 @@ export default function ReceptionistAppointments() {
       if (!response.ok) throw new Error(`Failed to ${dialogAction} appointment`);
 
       // Update local state
-      const newStatus = dialogAction === "approve" || dialogAction === "re-approve" 
-        ? "BOOKED" 
-        : "REJECTED";
+      type AppointmentStatus = "REJECTED" | "BOOKED" | "PENDING" | "DONE";
+      let newStatus: AppointmentStatus = "REJECTED";
+      if (dialogAction === "approve") {
+        newStatus = "BOOKED";
+      } else if (dialogAction === "re-approve") {
+        newStatus = "PENDING";
+      }
+
       updateAppointmentStatus(selectedAppointment.appointment.id, newStatus);
 
       toast.success(`Appointment ${dialogAction === "re-approve" ? "re-approved" : dialogAction + "d"} successfully`);
@@ -260,7 +265,14 @@ export default function ReceptionistAppointments() {
                             <p className="text-sm text-muted-foreground">{appt.doctor.specialization}</p>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <CalendarIcon className="mr-1 h-4 w-4" />
-                              <span>{formatDate(appt.appointment.appointment_date)}</span>
+                              {appt.appointment.reschedule_date ? (
+                                <>
+                                  <span className="line-through mr-2">{formatDate(appt.appointment.appointment_date)}</span>
+                                  <span className="">{formatDate(appt.appointment.reschedule_date)}</span>
+                                </>
+                              ) : (
+                                <span>{formatDate(appt.appointment.appointment_date)}</span>
+                              )}
                               <Clock className="ml-3 mr-1 h-4 w-4" />
                               <span>{formatTime(appt.slot.slot_time)}</span>
                             </div>
@@ -491,18 +503,18 @@ export default function ReceptionistAppointments() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialogAction === "approve" 
-                ? "Approve Appointment" 
-                : dialogAction === "re-approve" 
-                ? "Re-approve Appointment" 
-                : "Decline Appointment"}
+              {dialogAction === "approve"
+                ? "Approve Appointment"
+                : dialogAction === "re-approve"
+                  ? "Re-approve Appointment"
+                  : "Decline Appointment"}
             </DialogTitle>
             <DialogDescription>
               {dialogAction === "approve"
                 ? "Are you sure you want to approve this appointment?"
                 : dialogAction === "re-approve"
-                ? "Are you sure you want to re-approve this rejected appointment?"
-                : "Are you sure you want to decline this appointment?"}
+                  ? "Are you sure you want to re-approve this rejected appointment?"
+                  : "Are you sure you want to decline this appointment?"}
             </DialogDescription>
           </DialogHeader>
           {selectedAppointment && (
@@ -545,20 +557,20 @@ export default function ReceptionistAppointments() {
             </Button>
             <Button
               variant={
-                dialogAction === "approve" || dialogAction === "re-approve" 
-                  ? "default" 
+                dialogAction === "approve" || dialogAction === "re-approve"
+                  ? "default"
                   : "destructive"
               }
               onClick={confirmAction}
               disabled={isProcessing}
             >
-              {isProcessing 
-                ? "Processing..." 
-                : dialogAction === "approve" 
-                ? "Approve" 
-                : dialogAction === "re-approve"
-                ? "Re-approve"
-                : "Decline"}
+              {isProcessing
+                ? "Processing..."
+                : dialogAction === "approve"
+                  ? "Approve"
+                  : dialogAction === "re-approve"
+                    ? "Re-approve"
+                    : "Decline"}
             </Button>
           </DialogFooter>
         </DialogContent>
