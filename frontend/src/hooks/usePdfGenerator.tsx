@@ -1,7 +1,8 @@
 import type { PrescriptionData } from '@/lib/types';
-import { pdf, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { pdf, Document, Page, Text, View, Font, StyleSheet } from '@react-pdf/renderer';
 
-// Define styles for the PDF
+
+// Styles
 const styles = StyleSheet.create({
     page: {
         padding: 40,
@@ -10,20 +11,28 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     header: {
-        marginBottom: 30,
+        marginBottom: 20,
         textAlign: 'center',
         borderBottom: '1px solid #eee',
         paddingBottom: 10,
     },
     title: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
-        marginBottom: 5,
-        color: '#0056b3',
+        color: '#009689',
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 14,
         color: '#555',
+        marginTop: 2,
+        marginBottom: 4,
+        textAlign: 'center',
+    },
+    doctorInfo: {
+        marginTop: 10,
+        fontSize: 11,
+        color: '#333',
+        textAlign: 'center',
     },
     section: {
         marginBottom: 20,
@@ -35,17 +44,16 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#0056b3',
+        color: '#009689',
         borderBottom: '1px solid #eee',
         paddingBottom: 5,
     },
     row: {
         flexDirection: 'row',
         marginBottom: 6,
-        alignItems: 'flex-start',
     },
     label: {
-        width: 100,
+        width: 70,
         fontSize: 11,
         fontWeight: 'bold',
         color: '#444',
@@ -55,6 +63,16 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: '#333',
     },
+    twoColumnRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    col: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     multilineValue: {
         fontSize: 11,
         color: '#333',
@@ -62,49 +80,69 @@ const styles = StyleSheet.create({
     },
     footer: {
         marginTop: 40,
-        fontSize: 15,
+        fontSize: 12,
         textAlign: 'center',
         color: 'gray',
         borderTop: '1px solid #eee',
         paddingTop: 10,
     },
     poweredby: {
-        marginTop: 45,
+        marginTop: 10,
         fontSize: 9,
         textAlign: 'center',
         color: 'gray',
-        paddingTop: 10,
-    }
+    },
 });
 
-// PDF Document component
+// Mock doctor data (you can replace with useDoctorStore().doctor)
+const doctor = {
+    id: 1,
+    name: 'Dr. Alice Johnson',
+    email: 'alice.j@example.com',
+    phone: '1112223333',
+    specialization: 'Cardiology',
+};
+
 const PrescriptionPdf = ({ prescription }: { prescription: PrescriptionData }) => (
     <Document>
         <Page size="A4" style={styles.page}>
+            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.title}>Medical Prescription</Text>
+                <Text style={styles.subtitle}>Careflow Medical Centre</Text>
+                <Text style={styles.doctorInfo}>
+                    {doctor.name} ({doctor.specialization}) | Ph: {doctor.phone} | Reg. No: 52547
+                </Text>
             </View>
 
+            {/* Patient Info */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Patient Information</Text>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Patient Name:</Text>
-                    <Text style={styles.value}>{prescription.patient.name}</Text>
+
+                <View style={styles.twoColumnRow}>
+                    <View style={styles.col}>
+                        <Text style={styles.label}>Name:</Text>
+                        <Text style={styles.value}>{prescription.patient.name}</Text>
+                    </View>
+                    <View style={styles.col}>
+                        <Text style={styles.label}>DOB:</Text>
+                        <Text style={styles.value}>{new Date(prescription.patient.dob).toLocaleDateString()}</Text>
+                    </View>
                 </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Date of Birth:</Text>
-                    <Text style={styles.value}>{new Date(prescription.patient.dob).toLocaleDateString()}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Gender:</Text>
-                    <Text style={styles.value}>{prescription.patient.gender}</Text>
-                </View>
-                <View style={styles.row}>
-                    <Text style={styles.label}>Phone:</Text>
-                    <Text style={styles.value}>{prescription.patient.phone}</Text>
+
+                <View style={styles.twoColumnRow}>
+                    <View style={styles.col}>
+                        <Text style={styles.label}>Gender:</Text>
+                        <Text style={styles.value}>{prescription.patient.gender}</Text>
+                    </View>
+                    <View style={styles.col}>
+                        <Text style={styles.label}>Phone:</Text>
+                        <Text style={styles.value}>{prescription.patient.phone}</Text>
+                    </View>
                 </View>
             </View>
 
+            {/* Medication */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Prescription Details</Text>
                 <View style={styles.row}>
@@ -113,31 +151,42 @@ const PrescriptionPdf = ({ prescription }: { prescription: PrescriptionData }) =
                 </View>
             </View>
 
+            {/* Observation */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Medical Observations</Text>
-                <Text style={styles.multilineValue}>{prescription.prescription.observation || 'No observations noted.'}</Text>
+                <Text style={styles.multilineValue}>
+                    {prescription.prescription.observation || 'No observations noted.'}
+                </Text>
             </View>
 
+            {/* Advice */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Medical Advice</Text>
-                <Text style={styles.multilineValue}>{prescription.prescription.advise || 'No specific advice given.'}</Text>
+                <Text style={styles.multilineValue}>
+                    {prescription.prescription.advise || 'No specific advice given.'}
+                </Text>
             </View>
 
+            {/* Tests */}
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Recommended Tests</Text>
-                <Text style={styles.multilineValue}>{prescription.prescription.test || 'No tests recommended.'}</Text>
+                <Text style={styles.multilineValue}>
+                    {prescription.prescription.test || 'No tests recommended.'}
+                </Text>
             </View>
 
+            {/* Footer */}
             <View style={styles.footer}>
                 <Text>Prescribed on: {new Date().toLocaleDateString()}</Text>
             </View>
             <View style={styles.poweredby}>
-                <Text style={styles.poweredby}>Powered by careflow</Text>
+                <Text>Powered by Careflow</Text>
             </View>
         </Page>
     </Document>
 );
 
+// Hook to generate and download the PDF
 export const usePdfGenerator = () => {
     const generatePdf = async (prescription: PrescriptionData) => {
         const blob = await pdf(<PrescriptionPdf prescription={prescription} />).toBlob();

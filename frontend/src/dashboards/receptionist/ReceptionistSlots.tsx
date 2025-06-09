@@ -2,15 +2,15 @@ import { useEffect } from "react"
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCareFlowStore } from "@/lib/store"
-import { useDoctorStore } from "@/store/doctorStore"
+import { useAllDoctorStore } from "@/store/AlldoctorStore"
 import { User } from "lucide-react"
 import { Link, useNavigate } from "react-router"
 
 export default function ReceptionistSlots() {
   const navigate = useNavigate()
   const currentUser = useCareFlowStore((state) => state.currentUser)
-  const doctors = useDoctorStore((state) => state.doctors)
-  const setDoctors = useDoctorStore((state) => state.setDoctors)
+  const doctors = useAllDoctorStore((state) => state.doctors)
+  const setDoctors = useAllDoctorStore((state) => state.setDoctors)
 
   useEffect(() => {
     if (!currentUser) {
