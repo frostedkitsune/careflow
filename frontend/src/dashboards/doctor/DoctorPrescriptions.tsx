@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/dashboard-layout";
 import { useCareFlowStore } from "@/lib/store";
 import { useNavigate } from "react-router";
 import { type PrescriptionData } from "@/lib/types";
+import { usePdfGenerator } from "@/hooks/usePdfGenerator";
 
 export default function DoctorPrescriptions() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function DoctorPrescriptions() {
   const [prescriptions, setPrescriptions] = useState<PrescriptionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const { generatePdf } = usePdfGenerator();
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
@@ -40,11 +42,10 @@ export default function DoctorPrescriptions() {
     return null;
   }
 
-  const handlePrint = (prescription: PrescriptionData) => {
-    console.log("Printing prescription:", prescription);
-    // In a real app, you would implement actual printing logic here
-    alert(`Printing prescription for ${prescription.patient.name}\nMedication: ${prescription.prescription.medication}`);
-  };
+const handlePrint = async (prescription: PrescriptionData) => {
+  
+  await generatePdf(prescription);
+};
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -54,7 +55,6 @@ export default function DoctorPrescriptions() {
     });
   };
 
-  // Filter prescriptions based on search term
   const filteredPrescriptions = prescriptions.filter((data) => {
     const searchLower = searchTerm.toLowerCase();
     return (
@@ -65,7 +65,6 @@ export default function DoctorPrescriptions() {
     );
   });
 
-  // Sort prescriptions by date (recent first)
   const sortedPrescriptions = [...filteredPrescriptions].sort((a, b) => {
     return new Date(b.prescription.id).getTime() - new Date(a.prescription.id).getTime();
   });

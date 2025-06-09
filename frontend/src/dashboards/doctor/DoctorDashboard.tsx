@@ -41,8 +41,7 @@ export default function DoctorDashboard() {
   const todaysAppointments = appointments.filter(
     ({ appointment }) => appointment.appointment_date === today
   )
-  console.log(todaysAppointments);
-  
+
 
   const handleComplete = async (appointmentId: number) => {
     try {
