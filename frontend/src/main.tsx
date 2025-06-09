@@ -43,7 +43,6 @@ createRoot(document.getElementById('root')!).render(
           <Route path="appointments" element={<ReceptionistAppointments />} />
           <Route path="slots" element={<ReceptionistSlots />} />
           <Route path="slots/:doctorId" element={<ReceptionistSlotsManager />} />
-          <Route path="test-results" element={<ReceptionistTestResults />} />
           <Route path="profile" element={<ReceptionistProfile />} />
         </Route>
         <Route path="/doctor">
@@ -58,7 +57,6 @@ createRoot(document.getElementById('root')!).render(
           <Route path="appointments" element={<PatientAppointments />} />
           <Route path="appointments/new" element={<PatientNewAppointment />} />
           <Route path="documents" element={<PatientDocuments />} />
-          <Route path="test-results" element={<PatientTestResults />} />
           <Route path="profile" element={<PatientProfile />} />
         </Route>
       </Routes>
