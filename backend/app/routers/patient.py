@@ -1,7 +1,9 @@
 from typing import Optional
-from fastapi import APIRouter
+from fastapi import APIRouter, Form, Request, UploadFile
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel 
+import os
+import uuid
 
 from app.database import Appointment, Appointment_Pydantic, Doctor, Doctor_Pydantic, GenderEnum, Patient, Patient_Pydantic, Records, Records_Pydantic
 
@@ -64,11 +66,47 @@ class RecordRequestBody(BaseModel):
     reason: str
     record_data: str
 
+UPLOAD_DIR = "uploaded_records"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 # POST /record - Upload record
-@router.post("/record")
-async def upload_record(record: RecordRequestBody):
-    record_obj = await Records.create(**record.dict(exclude_unset=True), patient_id_id = 1)
-    return await Records_Pydantic.from_tortoise_orm(record_obj)
+@router.post("/record", summary="Upload a patient record with manual ID")
+async def create_patient_record(
+    request: Request,
+    reason: str = Form(...),
+    file: UploadFile = Form(...),
+):
+    # Hardcoded patient_id for now
+    patient_id = 1
+
+    # Validate patient exists
+    patient = await Patient.get_or_none(id=patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    # Save file locally
+    filename = f"{uuid.uuid4()}_{file.filename}"
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    # Generate public file URL
+    file_url = f"{request.base_url}uploaded_records/{filename}"
+
+    # Get next ID manually
+    last_record = await Records.all().order_by("-id").first()
+    next_id = (last_record.id + 1) if last_record else 1
+
+    record = await Records.create(
+            id=next_id,
+            reason=reason,
+            record_data=file_url,
+            patient_id_id=patient_id,  # correct way to manually assign FK by ID
+            doctor_id=None             # optional for now
+        )
+    
+
+    return await Records_Pydantic.from_tortoise_orm(record)
 
 # DELETE /record - Remove records
 @router.delete("/record/{id}")
