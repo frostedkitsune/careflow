@@ -11,7 +11,7 @@ import { doctors } from "@/lib/data"
 import { useCareFlowStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, Upload } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
@@ -25,29 +25,77 @@ export default function PatientNewAppointment() {
   const [time, setTime] = useState<string>("")
   const [doctorId, setDoctorId] = useState<string>("")
   const [reason, setReason] = useState<string>("")
-  const [notes, setNotes] = useState<string>("")
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [patientId, setPatientId] = useState("")
+  const [testName, setTestName] = useState("")
+  const [testType, setTestType] = useState("")
+  const [testResultText, setTestResultText] = useState("")
+  const [file, setFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Available time slots
   const timeSlots = [
-    "9:00 AM",
-    "9:30 AM",
     "10:00 AM",
     "10:30 AM",
     "11:00 AM",
     "11:30 AM",
-    "1:00 PM",
-    "1:30 PM",
-    "2:00 PM",
-    "2:30 PM",
-    "3:00 PM",
-    "3:30 PM",
-    "4:00 PM",
-    "4:30 PM",
   ]
 
   // Filter available doctors (only those marked as available)
-  const availableDoctors = doctors.filter((doctor) => doctor.available)
+  const availableDoctors = doctors.filter((doctor) => doctor.available);
+
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    }
+  }
+
+  const handleUpload = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!patientId || !testName || !testType || !testResultText) {
+      toast.error("Missing information", {
+        description: "Please fill in all required fields.",
+      })
+      return
+    }
+
+    setIsUploading(true)
+
+    // Simulate upload delay
+    setTimeout(() => {
+      // Create new test result
+      const newTestResult = {
+        patientId: Number.parseInt(patientId),
+        name: testName,
+        date: new Date().toISOString().split("T")[0],
+        status: "Available",
+        type: testType,
+        uploadedBy: currentUser ? "Sarah Johnson" : "Unknown",
+        results: testResultText,
+      }
+
+      // Add test result to store
+      addTestResult(newTestResult)
+
+      // Reset form
+      setPatientId("")
+      setTestName("")
+      setTestType("")
+      setTestResultText("")
+      setFile(null)
+      setIsUploading(false)
+      setUploadDialogOpen(false)
+
+      // Show success message
+      toast("Test results uploaded", {
+        description: "The test results have been successfully uploaded.",
+      })
+    }, 1500)
+  }
 
   useEffect(() => {
     if (!currentUser) {
@@ -74,7 +122,6 @@ export default function PatientNewAppointment() {
       date: format(date, "yyyy-MM-dd"),
       time,
       reason,
-      notes,
       status: "Pending",
     }
 
@@ -178,17 +225,36 @@ export default function PatientNewAppointment() {
                   required
                 />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="notes">Additional Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any additional information that might be helpful for the doctor"
-                  rows={3}
-                />
+              <Label htmlFor="file">Attach File (Optional)</Label>
+              <div className="flex items-center justify-center w-full">
+                <label
+                  htmlFor="file"
+                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 mb-2 text-gray-500" />
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">Click to upload</span> or drag and drop
+                    </p>
+                    <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG (MAX. 10MB)</p>
+                  </div>
+                  <Input
+                    id="file"
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileChange}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  />
+                </label>
               </div>
+              {file && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Selected file: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
+                </div>
+              )}
+            </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">

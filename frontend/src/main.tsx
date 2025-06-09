@@ -56,7 +56,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/patient">
           <Route path="dashboard" element={<PatientDashboard />} />
           <Route path="appointments" element={<PatientAppointments />} />
-          <Route path="appointment/new" element={<PatientNewAppointment />} />
+          <Route path="appointments/new" element={<PatientNewAppointment />} />
           <Route path="documents" element={<PatientDocuments />} />
           <Route path="test-results" element={<PatientTestResults />} />
           <Route path="profile" element={<PatientProfile />} />
