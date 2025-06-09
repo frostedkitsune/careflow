@@ -255,7 +255,7 @@ export const users = [
   {
     id: 1,
     name: "John Doe",
-    email: "john.doe@example.com",
+    email: "john.doe@personal.email",
     role: "patient",
     status: "Active",
     lastLogin: "2025-05-10 09:15:22",
@@ -286,8 +286,8 @@ export const users = [
   },
   {
     id: 5,
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
+    name: "Suhani Roy",
+    email: "suhani.roy@personal.email",
     role: "patient",
     status: "Active",
     lastLogin: "2025-05-09 14:22:10",
@@ -311,7 +311,7 @@ export const users = [
   {
     id: 8,
     name: "Emily Johnson",
-    email: "emily.johnson@example.com",
+    email: "emily.johnson@ersonal.email",
     role: "patient",
     status: "Active",
     lastLogin: "2025-05-08 09:15:40",
