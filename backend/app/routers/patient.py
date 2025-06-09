@@ -56,15 +56,19 @@ async def update_profile_data(patient_data: Patient_Pydantic):
     return {"msg": "updated details"}
 
 
+# GET /patient/record - Get all records for patient with id=1
 @router.get("/record", response_model=list[Records_Pydantic])
-async def fetch_records():
-    records = await Records.all().values()
-    return records
+async def get_patient_records():
+    patient_id = 2  # hardcoded for now
 
-class RecordRequestBody(BaseModel):   
-    doctor_id: Optional[int] = None
-    reason: str
-    record_data: str
+    records = await Records_Pydantic.from_queryset(
+        Records.filter(patient_id=patient_id)
+    )
+
+    if not records:
+        raise HTTPException(status_code=404, detail="No records found for this patient.")
+
+    return records
 
 UPLOAD_DIR = "uploaded_records"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -107,6 +111,7 @@ async def create_patient_record(
     
 
     return await Records_Pydantic.from_tortoise_orm(record)
+
 
 # DELETE /record - Remove records
 @router.delete("/record/{id}")
