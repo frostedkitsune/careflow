@@ -136,7 +136,7 @@ async def update_appointment_status(
     # Validate action
     action = action.lower()
     if action == "approve":
-        appointment.status = AppointmentStatusEnum.DONE
+        appointment.status = AppointmentStatusEnum.BOOKED
     elif action == "decline":
         appointment.status = AppointmentStatusEnum.REJECTED
     elif action == "re-approve":
