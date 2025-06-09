@@ -68,7 +68,7 @@ app.add_middleware(
 def read_root() -> PlainTextResponse:
     return PlainTextResponse("careflow backend api v1.0", status.HTTP_200_OK)
 
-
+app.mount("/uploaded_records", StaticFiles(directory="uploaded_records"), name="uploaded_records")
 # add routes here
 app.include_router(admin.router)
 app.include_router(patient.router)
