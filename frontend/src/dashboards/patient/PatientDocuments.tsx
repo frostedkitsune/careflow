@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCareFlowStore } from "@/lib/store"
 import { Calendar, Download, File, FileText, Upload, X } from "lucide-react"
 import { useState } from "react"
@@ -28,8 +27,7 @@ export default function PatientDocuments() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [documentToDelete, setDocumentToDelete] = useState<number | null>(null)
-  const [documentName, setDocumentName] = useState("")
-  const [documentType, setDocumentType] = useState("")
+  const [reason, setReason] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
 
@@ -40,18 +38,15 @@ export default function PatientDocuments() {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0]
       setFile(selectedFile)
-      if (!documentName) {
-        setDocumentName(selectedFile.name)
-      }
     }
   }
 
   const handleUpload = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!documentName || !documentType || !file) {
+    if (!reason || !file) {
       toast.error("Missing information", {
-        description: "Please fill in all required fields and select a file.",
+        description: "Please provide a reason and select a file.",
       })
       return
     }
@@ -63,9 +58,9 @@ export default function PatientDocuments() {
       // Create new document
       const newDocument = {
         patientId: currentUser?.id || 0,
-        name: documentName,
+        name: file.name,
         date: new Date().toISOString().split("T")[0],
-        type: documentType,
+        type: "Uploaded Document",
         size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
       }
 
@@ -73,8 +68,7 @@ export default function PatientDocuments() {
       addDocument(newDocument)
 
       // Reset form
-      setDocumentName("")
-      setDocumentType("")
+      setReason("")
       setFile(null)
       setIsUploading(false)
       setUploadDialogOpen(false)
@@ -183,31 +177,14 @@ export default function PatientDocuments() {
           </DialogHeader>
           <form onSubmit={handleUpload} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="documentName">Document Name</Label>
+              <Label htmlFor="reason">Reason</Label>
               <Input
-                id="documentName"
-                value={documentName}
-                onChange={(e) => setDocumentName(e.target.value)}
-                placeholder="Enter document name"
+                id="reason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter reason for uploading this document"
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="documentType">Document Type</Label>
-              <Select value={documentType} onValueChange={setDocumentType}>
-                <SelectTrigger id="documentType">
-                  <SelectValue placeholder="Select document type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Medical History">Medical History</SelectItem>
-                  <SelectItem value="Insurance">Insurance</SelectItem>
-                  <SelectItem value="Surgery Records">Surgery Records</SelectItem>
-                  <SelectItem value="Allergy Records">Allergy Records</SelectItem>
-                  <SelectItem value="Medication Records">Medication Records</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div className="space-y-2">

@@ -94,11 +94,6 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           icon: Calendar,
         },
         {
-          title: "Test Results",
-          href: `/${role}/test-results`,
-          icon: FileText,
-        },
-        {
           title: "Documents",
           href: `/${role}/documents`,
           icon: Upload,
@@ -114,11 +109,6 @@ export default function DashboardLayout({ children, role }: DashboardLayoutProps
           title: "Manage Slots",
           href: `/${role}/slots`,
           icon: Grid3x3,
-        },
-        {
-          title: "Upload Test Results",
-          href: `/${role}/test-results`,
-          icon: Upload,
         },
       ],
       doctor: [
