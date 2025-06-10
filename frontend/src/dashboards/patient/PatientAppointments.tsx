@@ -2,224 +2,129 @@ import DashboardLayout from "@/components/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getDoctorById } from "@/lib/data"
-import { useCareFlowStore } from "@/lib/store"
-import { AlertCircle, Calendar, Check, Clock, PlusCircle, X } from "lucide-react"
-import { useState } from "react"
-import { Link, useNavigate } from "react-router"
-import { toast } from "sonner"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
+import { useEffect } from "react"
+import { Calendar, Clock, PlusCircle, RotateCcw, Stethoscope } from "lucide-react"
+import { Link } from "react-router"
+import { usePatientAppointmentStore } from "@/store/patientAppointmentStore"
 
-export default function PatientAppointments() {
-  const navigate = useNavigate()
-  const [cancelAppointmentId, setCancelAppointmentId] = useState<number | null>(null)
-  const currentUser = useCareFlowStore((state) => state.currentUser)
-  const appointments = useCareFlowStore((state) => state.appointments)
-  const updateAppointment = useCareFlowStore((state) => state.updateAppointment)
+export default function PatientAppointmentsPage() {
+  const { appointments, setAppointments } = usePatientAppointmentStore()
 
-  // Filter appointments for the current patient
-  const patientAppointments = currentUser
-    ? appointments.filter((appointment) => appointment.patientId === currentUser.id)
-    : []
+  const fetchAppointments = async () => {
+    const res = await fetch("http://localhost:8000/patient/appointment")
+    const data = await res.json()
+    setAppointments(data)
+  }
 
-  // Separate appointments by status
-  const upcomingAppointments = patientAppointments.filter(
-    (appointment) => appointment.status === "Confirmed" || appointment.status === "Pending",
+  useEffect(() => {
+    fetchAppointments()
+  }, [])
+
+  const pending = appointments.filter((a) => a.appointment.status === "PENDING")
+  const upcoming = appointments.filter((a) => a.appointment.status === "BOOKED")
+  const cancelled = appointments.filter((a) => a.appointment.status === "REJECTED")
+  const completed = appointments.filter((a) => a.appointment.status === "DONE")
+
+  const renderCard = (appt:any) => (
+    <Card
+      key={appt.appointment.id}
+      className="border shadow-md hover:shadow-lg transition-shadow rounded-2xl overflow-hidden"
+    >
+      <CardContent className="p-5 space-y-3 bg-white">
+        <div className="flex items-center gap-2 text-teal-600">
+          <Stethoscope className="w-5 h-5" />
+          <span className="text-lg font-semibold">
+            {appt.doctor.name} — {appt.doctor.specialization}
+          </span>
+        </div>
+        <div className="text-sm text-muted-foreground space-y-1">
+          <div>
+            <Calendar className="inline w-4 h-4 mr-1" />
+            {appt.appointment.appointment_date}
+          </div>
+          <div>
+            <Clock className="inline w-4 h-4 mr-1" />
+            {appt.slot.slot_time}
+          </div>
+          <div>Reason: {appt.appointment.reason}</div>
+        </div>
+      </CardContent>
+    </Card>
   )
-  const pastAppointments = patientAppointments.filter(
-    (appointment) => appointment.status === "Completed" || appointment.status === "Cancelled",
-  )
-
-  const handleCancelAppointment = (id: number) => {
-    setCancelAppointmentId(id)
-  }
-
-  const confirmCancelAppointment = () => {
-    if (cancelAppointmentId) {
-      updateAppointment(cancelAppointmentId, { status: "Cancelled" })
-      toast("Appointment cancelled", {
-        description: "Your appointment has been successfully cancelled.",
-      })
-      setCancelAppointmentId(null)
-    }
-  }
-
-  if (!currentUser) {
-    navigate("/login")
-    return null
-  }
 
   return (
     <DashboardLayout role="patient">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">My Appointments</h1>
-          <Link to="/patient/appointments/new">
-            <Button className="bg-teal-600 hover:bg-teal-700">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Book New Appointment
+      <div className="space-y-6 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight text-black">
+            My Appointments
+          </h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchAppointments} className="flex items-center">
+              <RotateCcw className="mr-2 h-4 w-4" /> Refresh
             </Button>
-          </Link>
+            <Link to="/patient/appointments/new">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white flex items-center">
+                <PlusCircle className="mr-2 h-4 w-4" /> Book New Appointment
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <Tabs defaultValue="upcoming" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="upcoming">Upcoming Appointments</TabsTrigger>
-            <TabsTrigger value="past">Past Appointments</TabsTrigger>
+        <Tabs defaultValue="pending" className="w-full space-y-4">
+          <TabsList className="flex flex-wrap justify-center gap-2">
+            <TabsTrigger value="pending">Pending</TabsTrigger>
+            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
+            <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="upcoming" className="space-y-4">
-            {upcomingAppointments.length > 0 ? (
-              upcomingAppointments.map((appointment) => {
-                const doctor = getDoctorById(appointment.doctorId)
-                return (
-                  <Card key={appointment.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 p-6">
-                          <div className="flex items-start space-x-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-100">
-                              <Calendar className="h-6 w-6 text-teal-600" />
-                            </div>
-                            <div className="space-y-1">
-                              <h3 className="font-medium">{doctor?.name}</h3>
-                              <p className="text-sm text-muted-foreground">{doctor?.specialty}</p>
-                              <div className="flex items-center text-sm text-muted-foreground">
-                                <Calendar className="mr-1 h-4 w-4" />
-                                <span>{appointment.date}</span>
-                                <Clock className="ml-3 mr-1 h-4 w-4" />
-                                <span>{appointment.time}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">Reason: {appointment.reason}</p>
-                              {appointment.status === "Pending" && (
-                                <div className="flex items-center mt-1">
-                                  <AlertCircle className="h-4 w-4 text-yellow-500 mr-1" />
-                                  <span className="text-xs text-yellow-500">Awaiting confirmation</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end space-x-2 bg-gray-50 p-4 md:w-48">
-                          {appointment.status === "Confirmed" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
-                              onClick={() => handleCancelAppointment(appointment.id)}
-                            >
-                              <X className="mr-1 h-4 w-4" />
-                              Cancel
-                            </Button>
-                          )}
-                          <Button variant="outline" size="sm">
-                            Details
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <Calendar className="h-10 w-10 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground mb-2">You have no upcoming appointments</p>
-                  <Link to="/patient/appointments/new">
-                    <Button className="bg-teal-600 hover:bg-teal-700 mt-2">Book an Appointment</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
+          <TabsContent value="pending">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {pending.length > 0 ? pending.map(renderCard) : (
+                <p className="text-muted-foreground col-span-full text-center">
+                  No pending appointments.
+                </p>
+              )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="past" className="space-y-4">
-            {pastAppointments.length > 0 ? (
-              pastAppointments.map((appointment) => {
-                const doctor = getDoctorById(appointment.doctorId)
-                return (
-                  <Card key={appointment.id} className="overflow-hidden">
-                    <CardContent className="p-0">
-                      <div className="flex flex-col md:flex-row">
-                        <div className="flex-1 p-6">
-                          <div className="flex items-start space-x-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                              <Calendar className="h-6 w-6 text-gray-600" />
-                            </div>
-                            <div className="space-y-1">
-                              <h3 className="font-medium">{doctor?.name}</h3>
-                              <p className="text-sm text-muted-foreground">{doctor?.specialty}</p>
-                              <div className="flex items-center text-sm text-muted-foreground">
-                                <Calendar className="mr-1 h-4 w-4" />
-                                <span>{appointment.date}</span>
-                                <Clock className="ml-3 mr-1 h-4 w-4" />
-                                <span>{appointment.time}</span>
-                              </div>
-                              <p className="text-sm text-muted-foreground">Reason: {appointment.reason}</p>
-                              <div className="flex items-center mt-1">
-                                {appointment.status === "Completed" ? (
-                                  <>
-                                    <Check className="h-4 w-4 text-green-500 mr-1" />
-                                    <span className="text-xs text-green-500">Completed</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <X className="h-4 w-4 text-red-500 mr-1" />
-                                    <span className="text-xs text-red-500">Cancelled</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-end space-x-2 bg-gray-50 p-4 md:w-48">
-                          <Button variant="outline" size="sm">
-                            Details
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
-            ) : (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-10">
-                  <Calendar className="h-10 w-10 text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">You have no past appointments</p>
-                </CardContent>
-              </Card>
-            )}
+          <TabsContent value="upcoming">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {upcoming.length > 0 ? upcoming.map(renderCard) : (
+                <p className="text-muted-foreground col-span-full text-center">
+                  No upcoming appointments.
+                </p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="cancelled">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {cancelled.length > 0 ? cancelled.map(renderCard) : (
+                <p className="text-muted-foreground col-span-full text-center">
+                  No cancelled appointments.
+                </p>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="completed">
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {completed.length > 0 ? completed.map(renderCard) : (
+                <p className="text-muted-foreground col-span-full text-center">
+                  No completed appointments.
+                </p>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
-
-      <Dialog open={cancelAppointmentId !== null} onOpenChange={() => setCancelAppointmentId(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Cancel Appointment</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this appointment? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelAppointmentId(null)}>
-              Keep Appointment
-            </Button>
-            <Button variant="destructive" onClick={confirmCancelAppointment}>
-              Cancel Appointment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </DashboardLayout>
   )
 }
