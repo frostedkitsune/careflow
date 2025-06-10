@@ -49,49 +49,36 @@ async def add_doctor(doctor_data:DoctorCreateData):
 #route /record/{patient_id}/{appointment_id}(GET)
 @router.get(
     "/record/{patient_id}/{appointment_id}",
-    summary="Get patient record for specific appointment"
+    summary="Get all patient records for a specific appointment"
 )
-async def get_patient_record(
+async def get_patient_records(
     patient_id: int = Path(..., description="ID of the patient"),
     appointment_id: int = Path(..., description="ID of the appointment")
 ):
-    try:
-        # First get the appointment to check record_ids
-        appointment = await Appointment.filter(
-            id=appointment_id,
-            patient_id=patient_id
-        ).first().values()
-        
-        if not appointment:
-            raise HTTPException(
-                status_code=404,
-                detail="Appointment not found for this patient"
-            )
-        
-        # Get record_ids from appointment (assuming it's a list of IDs)
-        record_ids = appointment.get('record_ids', [])
-        if not record_ids:
-            raise HTTPException(
-                status_code=404,
-                detail="No records found for this appointment"
-            )
-        
-        # Get the first record (or modify to handle multiple records)
-        record = await Records.filter(
-            id=record_ids[0],
-            patient_id=patient_id
-        ).first().values()
-        
-        if not record:
-            raise HTTPException(
-                status_code=404,
-                detail="Record not found"
-            )
-            
-        return record
-        
-    except Exception as e:
-        raise HTTPException(status_code=422, detail=str(e))
+    # Fetch the appointment
+    appointment = await Appointment.filter(
+        id=appointment_id,
+        patient_id=patient_id
+    ).first().values()
+
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found for this patient")
+
+    # Get record_ids list from the appointment
+    record_ids = appointment.get("record_ids")
+    if not record_ids or not isinstance(record_ids, list):
+        raise HTTPException(status_code=404, detail="No records found for this appointment")
+
+    # Fetch all matching records
+    records = await Records.filter(
+        id__in=record_ids,
+        patient_id=patient_id
+    ).all().values()
+
+    if not records:
+        raise HTTPException(status_code=404, detail="No records found")
+
+    return {"records": records}
 
 
 @router.get("/appointments", summary="Get all appointments for the current doctor")
