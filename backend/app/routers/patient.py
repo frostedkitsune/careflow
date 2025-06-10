@@ -6,7 +6,7 @@ import os
 import uuid
 
 
-from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, GenderEnum, Patient, Patient_Pydantic, Records, Records_Pydantic, Slot_Pydantic
+from app.database import Appointment, Appointment_Pydantic, AppointmentStatusEnum, Doctor, Doctor_Pydantic, GenderEnum, Patient, Patient_Pydantic, Records, Records_Pydantic, Slot, Slot_Pydantic
 
 router = APIRouter(prefix="/patient", tags=["patient"]) 
 
@@ -158,4 +158,24 @@ async def get_patient_appointments():
 
     return results
 
+@router.get("/slots", summary="Get all slots grouped by doctor for patients")
+async def get_all_slots_for_patients():
+    doctors = await Doctor.all().values("id", "name", "specialization")
+    if not doctors:
+        raise HTTPException(status_code=404, detail="No doctors found")
 
+    response = []
+    for doctor in doctors:
+        slots = await Slot.filter(doctor_id=doctor["id"]).values("id", "available", "day", "slot_time")
+        if slots:
+            response.append({
+                "doctor_id": doctor["id"],
+                "doctor_name": doctor["name"],
+                "specialization": doctor["specialization"],
+                "slots": slots
+            })
+
+    if not response:
+        raise HTTPException(status_code=404, detail="No available slots found for any doctor")
+
+    return {"data": response}
