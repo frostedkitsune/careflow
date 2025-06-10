@@ -23,9 +23,12 @@ export interface PrescriptionData {
 
 // fetched record data model
 export interface RecordData {
-  id: number;
-  reason: string;
-  record_data: string;
-  doctor_id_id: number;
-  patient_id_id: number;
+  records: {
+    id: number;
+    reason: string;
+    record_data: string;
+    doctor_id_id: number | null;
+    patient_id_id: number;
+    created_at?: string;
+  }[];
 }
