@@ -20,7 +20,7 @@ const DoctorAppointmentsDetails = () => {
     const { appointments, setAppointments } = useAppointmentStore();
     const [activeTab, setActiveTab] = useState("overview");
     const [prescription, setPrescription] = useState<PrescriptionData | null>(null);
-    const [record, setRecord] = useState<RecordData | null>(null);
+    const [record, setRecord] = useState<RecordData | null >(null);
     const [loading, setLoading] = useState({
         prescription: false,
         record: false,
@@ -210,8 +210,8 @@ const DoctorAppointmentsDetails = () => {
                     <h1 className="text-2xl font-bold ml-6">Appointment Details</h1>
                     <div></div> {/* Spacer */}
                     {appointment.appointment.status === "BOOKED" && (
-                        <Button 
-                            className="absolute right-0 cursor-pointer" 
+                        <Button
+                            className="absolute right-0 cursor-pointer"
                             onClick={handleComplete}
                             disabled={loading.complete}
                         >
@@ -225,7 +225,7 @@ const DoctorAppointmentsDetails = () => {
                                 </span>
                             ) : (
                                 <>
-                                    <CircleCheck className="mr-2 h-4 w-4" /> 
+                                    <CircleCheck className="mr-2 h-4 w-4" />
                                     Mark as Done
                                 </>
                             )}
@@ -428,34 +428,40 @@ const DoctorAppointmentsDetails = () => {
                                     <p className="text-red-500">{error.record}</p>
                                 </CardContent>
                             </Card>
-                        ) : record ? (
-                            <Card className="border-none shadow-sm">
-                                <CardHeader className="pb-3">
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <ClipboardList className="h-5 w-5" />
-                                        Medical Record
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-gray-500">Reason</p>
-                                        <p className="text-sm">
-                                            {record.reason}
-                                        </p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-gray-500">Record Data</p>
-                                        <p className="text-sm">
-                                            {record.record_data}
-                                        </p>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                        ) : record && record.records && record.records.length > 0 ? (
+                            <div className="grid gap-4">
+                                {record.records.map((rec) => (
+                                    <Card key={rec.id} className="border-none shadow-sm hover:shadow-md transition-shadow">
+                                        <CardHeader className="pb-3">
+                                            <CardTitle className="flex items-center gap-2 text-lg">
+                                                <ClipboardList className="h-5 w-5" />
+                                                {rec.reason}
+                                            </CardTitle>
+                                            <div className="text-sm text-muted-foreground">
+                                                {formatDate(rec.created_at || new Date().toISOString())}
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="flex justify-between items-center">
+                                            <div className="text-sm text-muted-foreground">
+                                                {rec.record_data.split('/').pop()}
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => window.open(rec.record_data, '_blank')}
+                                            >
+                                                <FileText className="mr-2 h-4 w-4" />
+                                                View PDF
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
                         ) : (
                             <Card className="border-none shadow-sm">
                                 <CardContent className="flex flex-col items-center justify-center py-12">
                                     <Stethoscope className="h-10 w-10 text-muted-foreground mb-4" />
-                                    <p className="text-muted-foreground">No medical record found</p>
+                                    <p className="text-muted-foreground">No medical records found</p>
                                 </CardContent>
                             </Card>
                         )}
