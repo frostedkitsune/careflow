@@ -28,7 +28,7 @@ async def update_profile_data(patient_data: Patient_Pydantic):
 # GET /patient/record - Get all records for patient with id=1
 @router.get("/record", response_model=list[Records_Pydantic])
 async def get_patient_records():
-    patient_id = 2  # hardcoded for now
+    patient_id = 1  # hardcoded for now
 
     records = await Records_Pydantic.from_queryset(
         Records.filter(patient_id=patient_id)
@@ -104,7 +104,7 @@ class AppointmentCreateData(BaseModel):
     doctor_id: int
     receptionist_id: int | None = None
     slot_id: int
-    appointment_date: str  # Format: "YYYY-MM-DD"
+    appointment_date: str 
     reason: str
     record_ids: List[int]
 
