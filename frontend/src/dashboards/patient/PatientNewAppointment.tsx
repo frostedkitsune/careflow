@@ -1,272 +1,528 @@
-import DashboardLayout from "@/components/dashboard-layout"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { doctors } from "@/lib/data"
-import { useCareFlowStore } from "@/lib/store"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
-import { CalendarIcon, Upload } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router"
-import { toast } from "sonner"
+import DashboardLayout from "@/components/dashboard-layout";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useCareFlowStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { CalendarIcon, ChevronDown, Loader2, Upload } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import { create } from "zustand";
 
-export default function PatientNewAppointment() {
-  const navigate = useNavigate()
-  const currentUser = useCareFlowStore((state) => state.currentUser)
-  const addAppointment = useCareFlowStore((state) => state.addAppointment)
+// New Zustand store for slots
+interface SlotStore {
+  slotsData: DoctorWithSlots[];
+  setSlotsData: (data: DoctorWithSlots[]) => void;
+  isLoadingSlots: boolean;
+  setIsLoadingSlots: (loading: boolean) => void;
+  fetchSlots: () => Promise<void>;
+}
 
-  const [date, setDate] = useState<Date | undefined>(undefined)
-  const [time, setTime] = useState<string>("")
-  const [doctorId, setDoctorId] = useState<string>("")
-  const [reason, setReason] = useState<string>("")
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [patientId, setPatientId] = useState("")
-  const [testName, setTestName] = useState("")
-  const [testType, setTestType] = useState("")
-  const [testResultText, setTestResultText] = useState("")
-  const [file, setFile] = useState<File | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Available time slots
-  const timeSlots = [
-    "10:00 AM",
-    "10:30 AM",
-    "11:00 AM",
-    "11:30 AM",
-  ]
-
-  // Filter available doctors (only those marked as available)
-  const availableDoctors = doctors.filter((doctor) => doctor.available);
-
-  
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
-  }
-
-  const handleUpload = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!patientId || !testName || !testType || !testResultText) {
-      toast.error("Missing information", {
-        description: "Please fill in all required fields.",
-      })
-      return
-    }
-
-    setIsUploading(true)
-
-    // Simulate upload delay
-    setTimeout(() => {
-      // Create new test result
-      const newTestResult = {
-        patientId: Number.parseInt(patientId),
-        name: testName,
-        date: new Date().toISOString().split("T")[0],
-        status: "Available",
-        type: testType,
-        uploadedBy: currentUser ? "Sarah Johnson" : "Unknown",
-        results: testResultText,
+export const useSlotStore = create<SlotStore>((set) => ({
+  slotsData: [],
+  isLoadingSlots: false,
+  setSlotsData: (data) => set({ slotsData: data }),
+  setIsLoadingSlots: (loading) => set({ isLoadingSlots: loading }),
+  fetchSlots: async () => {
+    set({ isLoadingSlots: true });
+    try {
+      const response = await fetch("http://localhost:8000/patient/slots");
+      if (!response.ok) {
+        throw new Error("Failed to fetch slots");
       }
+      const data = await response.json();
+      set({ slotsData: data.data });
+    } catch (error) {
+      toast.error("Error loading slots", {
+        description: error instanceof Error ? error.message : "Failed to fetch slots",
+      });
+    } finally {
+      set({ isLoadingSlots: false });
+    }
+  },
+}));
 
-      // Add test result to store
-      addTestResult(newTestResult)
+// Custom MultiSelect Component
+interface MultiSelectProps {
+  options: { value: string; label: string }[];
+  selected: string[];
+  onChange: (values: string[]) => void;
+  placeholder?: string;
+  loading?: boolean;
+}
 
-      // Reset form
-      setPatientId("")
-      setTestName("")
-      setTestType("")
-      setTestResultText("")
-      setFile(null)
-      setIsUploading(false)
-      setUploadDialogOpen(false)
+const MultiSelect: React.FC<MultiSelectProps> = ({
+  options,
+  selected,
+  onChange,
+  placeholder = "Select an option",
+  loading = false,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-      // Show success message
-      toast("Test results uploaded", {
-        description: "The test results have been successfully uploaded.",
-      })
-    }, 1500)
-  }
+  const handleToggle = () => setIsOpen(!isOpen);
+
+  const handleOptionClick = (value: string) => {
+    if (selected.includes(value)) {
+      onChange(selected.filter((item) => item !== value));
+    } else {
+      onChange([...selected, value]);
+    }
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
-    if (!currentUser) {
-      navigate("/login")
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const selectedLabels = selected
+    .map((value) => options.find((option) => option.value === value)?.label)
+    .filter(Boolean);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <Button
+        variant="outline"
+        role="combobox"
+        aria-expanded={isOpen}
+        onClick={handleToggle}
+        className="w-full justify-between"
+        disabled={loading}
+      >
+        {selectedLabels.length > 0
+          ? selectedLabels.join(", ")
+          : placeholder}
+        {loading ? (
+          <Loader2 className="ml-2 h-4 w-4 shrink-0 animate-spin opacity-50" />
+        ) : (
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        )}
+      </Button>
+      {isOpen && (
+        <div className="absolute top-full left-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md mt-1">
+          {options.length > 0 ? (
+            options.map((option) => (
+              <div
+                key={option.value}
+                className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-accent hover:text-accent-foreground"
+                onClick={() => handleOptionClick(option.value)}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.includes(option.value)}
+                  readOnly
+                  className="mr-2"
+                />
+                {option.label}
+              </div>
+            ))
+          ) : (
+            <div className="p-2 text-sm text-muted-foreground">No options available.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// End Custom MultiSelect Component
+
+interface Doctor {
+  id: number;
+  name: string;
+  specialization: string;
+}
+
+interface Slot {
+  id: number;
+  available: boolean;
+  day: string;
+  slot_time: string;
+}
+
+interface DoctorWithSlots {
+  doctor_id: number;
+  doctor_name: string;
+  specialization: string;
+  slots: Slot[];
+}
+
+interface MedicalRecord {
+  id: number;
+  reason: string;
+  record_data: string;
+  created_at: string;
+}
+
+export default function PatientNewAppointment() {
+  const navigate = useNavigate();
+  const currentUser = useCareFlowStore((state) => state.currentUser);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const { slotsData, isLoadingSlots, fetchSlots } = useSlotStore(); // Using Zustand for slots
+  const [records, setRecords] = useState<MedicalRecord[]>([]);
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("");
+  const [selectedSlot, setSelectedSlot] = useState<string>("");
+  const [selectedRecords, setSelectedRecords] = useState<number[]>([]);
+  const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(
+    undefined
+  );
+  const [reason, setReason] = useState<string>("");
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(false);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch doctors
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setIsLoadingDoctors(true);
+      try {
+        const response = await fetch("http://localhost:8000/patient/doctors");
+        if (!response.ok) {
+          throw new Error("Failed to fetch doctors");
+        }
+        const data = await response.json();
+        setDoctors(data.doctors);
+      } catch (error) {
+        toast.error("Error loading doctors", {
+          description: error instanceof Error ? error.message : "Failed to fetch doctors",
+        });
+      } finally {
+        setIsLoadingDoctors(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
+  // Fetch slots when doctor is selected or if slotsData is empty
+  useEffect(() => {
+    if (selectedDoctor && slotsData.length === 0) {
+      fetchSlots();
     }
-  }, [currentUser, navigate])
+  }, [selectedDoctor, slotsData.length, fetchSlots]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Fetch medical records
+  useEffect(() => {
+    const fetchRecords = async () => {
+      setIsLoadingRecords(true);
+      try {
+        const response = await fetch("http://localhost:8000/patient/record");
+        if (!response.ok) {
+          throw new Error("Failed to fetch medical records");
+        }
+        const data = await response.json();
+        setRecords(data);
+      } catch (error) {
+        toast.error("Error loading records", {
+          description: error instanceof Error ? error.message : "Failed to fetch records",
+        });
+      } finally {
+        setIsLoadingRecords(false);
+      }
+    };
 
-    if (!date || !time || !doctorId || !reason) {
+    fetchRecords();
+  }, []);
+
+  // Get available slots for selected doctor
+  const getAvailableSlots = () => {
+    if (!selectedDoctor || !slotsData.length) return [];
+
+    const doctorSlots = slotsData.find(
+      (d) => d.doctor_id === parseInt(selectedDoctor)
+    );
+    if (!doctorSlots) return [];
+
+    return doctorSlots.slots
+      .filter((slot) => slot.available)
+      .map((slot) => ({
+        value: slot.id.toString(),
+        label: `${slot.day} - ${formatSlotTime(slot.slot_time)}`,
+      }));
+  };
+
+  // Format slot time for display
+  const formatSlotTime = (timeString: string) => {
+    // Handle different time formats from API
+    if (timeString.includes("-")) {
+      const [start, end] = timeString.split("-");
+      return `${formatTime(start)} - ${formatTime(end)}`;
+    }
+    return formatTime(timeString);
+  };
+
+  const formatTime = (timeStr: string) => {
+    // Remove seconds if present
+    const timeWithoutSeconds = timeStr.split(":").slice(0, 2).join(":");
+    return new Date(`2000-01-01T${timeWithoutSeconds}`).toLocaleTimeString(
+      [],
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }
+    );
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedDoctor || !selectedSlot || !appointmentDate || !reason) {
       toast.error("Missing information", {
         description: "Please fill in all required fields.",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
-    // Create new appointment
-    const newAppointment = {
-      patientId: currentUser?.id || 0,
-      doctorId: Number.parseInt(doctorId),
-      date: format(date, "yyyy-MM-dd"),
-      time,
-      reason,
-      status: "Pending",
+    try {
+      const response = await fetch("http://localhost:8000/patient/appointment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          doctor_id: parseInt(selectedDoctor),
+          slot_id: parseInt(selectedSlot),
+          appointment_date: format(appointmentDate, "yyyy-MM-dd"),
+          reason: reason,
+          record_ids: selectedRecords,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to book appointment");
+      }
+
+      toast.success("Appointment requested", {
+        description: "Your appointment request has been submitted successfully.",
+      });
+
+      // Redirect to appointments page
+      setTimeout(() => {
+        navigate("/patient/appointments");
+      }, 1500);
+    } catch (error) {
+      toast.error("Booking failed", {
+        description: error instanceof Error ? error.message : "An unknown error occurred",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Add appointment to store
-    addAppointment(newAppointment)
-
-    // Show success message
-    toast("Appointment requested", {
-      description: "Your appointment request has been submitted and is awaiting confirmation.",
-    })
-
-    // Redirect to appointments page
-    setTimeout(() => {
-      navigate("/patient/appointments")
-    }, 1500)
-  }
+  };
 
   if (!currentUser) {
-    return null
+    navigate("/login");
+    return null;
   }
 
   return (
     <DashboardLayout role="patient">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight mb-6">Book New Appointment</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-6">
+          Book New Appointment
+        </h1>
 
         <Card>
           <CardHeader>
             <CardTitle>Appointment Details</CardTitle>
-            <CardDescription>Please fill in the details below to request an appointment.</CardDescription>
+            <CardDescription>
+              Please fill in the details below to request an appointment.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="doctor">Select Doctor</Label>
-                <Select value={doctorId} onValueChange={setDoctorId}>
+                <Label htmlFor="doctor">Select Doctor *</Label>
+                <Select
+                  value={selectedDoctor}
+                  onValueChange={setSelectedDoctor}
+                  disabled={isLoadingDoctors}
+                >
                   <SelectTrigger id="doctor">
-                    <SelectValue placeholder="Select a doctor" />
+                    {isLoadingDoctors ? (
+                      <div className="flex items-center">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading doctors...
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select a doctor" />
+                    )}
                   </SelectTrigger>
                   <SelectContent>
-                    {availableDoctors.map((doctor) => (
+                    {doctors.map((doctor) => (
                       <SelectItem key={doctor.id} value={doctor.id.toString()}>
-                        {doctor.name} - {doctor.specialty}
+                        <div className="flex flex-col">
+                          <span className="font-medium">{doctor.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {doctor.specialization}
+                          </span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {selectedDoctor && (
                 <div className="space-y-2">
-                  <Label>Appointment Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : "Select date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                        disabled={(date: Date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0)) || date.getDay() === 0 || date.getDay() === 6
-                        }
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="time">Appointment Time</Label>
-                  <Select value={time} onValueChange={setTime}>
-                    <SelectTrigger id="time">
-                      <SelectValue placeholder="Select time" />
+                  <Label htmlFor="slot">Available Time Slots *</Label>
+                  <Select
+                    value={selectedSlot}
+                    onValueChange={setSelectedSlot}
+                    disabled={isLoadingSlots || !selectedDoctor}
+                  >
+                    <SelectTrigger id="slot">
+                      {isLoadingSlots ? (
+                        <div className="flex items-center">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading slots...
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Select a time slot" />
+                      )}
                     </SelectTrigger>
                     <SelectContent>
-                      {timeSlots.map((slot) => (
-                        <SelectItem key={slot} value={slot}>
-                          {slot}
-                        </SelectItem>
-                      ))}
+                      {getAvailableSlots().length > 0 ? (
+                        getAvailableSlots().map((slot) => (
+                          <SelectItem key={slot.value} value={slot.value}>
+                            {slot.label}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="text-sm text-muted-foreground p-2">
+                          No available slots for selected doctor
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Appointment Date *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !appointmentDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {appointmentDate ? format(appointmentDate, "PPP") : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={appointmentDate}
+                      onSelect={setAppointmentDate}
+                      initialFocus
+                      disabled={(date) =>
+                        date < new Date(new Date().setHours(0, 0, 0, 0))
+                      }
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason for Visit</Label>
-                <Input
+                <Label htmlFor="records">Attach Medical Records (Optional)</Label>
+                <MultiSelect
+                  options={records.map((record) => ({
+                    value: record.id.toString(),
+                    label: `${record.reason} (${new Date(
+                      record.created_at
+                    ).toLocaleDateString()})`,
+                  }))}
+                  selected={selectedRecords.map(String)}
+                  onChange={(values) => setSelectedRecords(values.map(Number))}
+                  placeholder="Select records to attach"
+                  loading={isLoadingRecords}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="reason">Reason for Appointment *</Label>
+                <Textarea
                   id="reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Brief description of your reason for visit"
+                  placeholder="Please describe the reason for your appointment"
+                  className="min-h-[100px]"
                   required
                 />
               </div>
-              
-              <div className="space-y-2">
-              <Label htmlFor="file">Attach File (Optional)</Label>
-              <div className="flex items-center justify-center w-full">
-                <label
-                  htmlFor="file"
-                  className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 mb-2 text-gray-500" />
-                    <p className="mb-2 text-sm text-gray-500">
-                      <span className="font-semibold">Click to upload</span> or drag and drop
-                    </p>
-                    <p className="text-xs text-gray-500">PDF, DOC, DOCX, JPG, PNG (MAX. 10MB)</p>
-                  </div>
-                  <Input
-                    id="file"
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  />
-                </label>
-              </div>
-              {file && (
-                <div className="text-sm text-muted-foreground mt-2">
-                  Selected file: {file.name} ({(file.size / (1024 * 1024)).toFixed(2)} MB)
-                </div>
-              )}
-            </div>
             </form>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => navigate("/patient/appointments")}>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/patient/appointments")}
+            >
               Cancel
             </Button>
-            <Button className="bg-teal-600 hover:bg-teal-700" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Request Appointment"}
+            <Button
+              className="bg-teal-600 hover:bg-teal-700"
+              onClick={handleSubmit}
+              disabled={
+                isSubmitting ||
+                !selectedDoctor ||
+                !selectedSlot ||
+                !appointmentDate ||
+                !reason
+              }
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Request Appointment"
+              )}
             </Button>
           </CardFooter>
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }
