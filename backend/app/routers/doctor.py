@@ -83,7 +83,7 @@ async def get_patient_records(
 
 @router.get("/appointments", summary="Get all appointments for the current doctor")
 async def get_doctor_appointments():
-    doctor_id = 2  # Replace this with real authenticated doctor ID
+    doctor_id = 3  # Replace this with real authenticated doctor ID
     
     # Filter by doctor_id and status in ("BOOKED", "DONE")
     appointments = await Appointment.filter(

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/prescription", tags=["prescription"])
 # route for get all prescription for the doctor
 @router.get("/all", summary="Get all prescriptions for a specific doctor")
 async def get_prescriptions_by_doctor_id():
-    doctor_id = 1  # replace later with real doctor_id from token
+    doctor_id = 3  # replace later with real doctor_id from token
     # Check if doctor exists
     doctor = await Doctor.get_or_none(id=doctor_id)
     if not doctor:
@@ -65,7 +65,7 @@ class PrescriptionCreateData(BaseModel):
 async def create_prescription(prescription_data: PrescriptionCreateData):
     print(prescription_data)
     await Prescription.create(
-        id = 21,
+        id = 31,
         appointment_id_id=prescription_data.appointment_id,
         observation=prescription_data.observation,
         medication=prescription_data.medication,

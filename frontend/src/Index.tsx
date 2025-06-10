@@ -105,7 +105,7 @@ const Index = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button className="btn-primary-gradient px-8 py-6 text-base" asChild>
-                <Link to="/dashboard">Log In</Link>
+                <Link to="/login">Log In</Link>
               </Button>
             </div>
             
@@ -230,7 +230,7 @@ const Index = () => {
               className="bg-white text-teal-700 hover:bg-white px-8 py-6 text-base rounded-xl"
               asChild
             >
-              <Link to="/dashboard">Log In</Link>
+              <Link to="/login">Log In</Link>
             </Button>
           </motion.div>
         </div>
